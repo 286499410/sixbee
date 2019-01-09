@@ -1,0 +1,11 @@
+{
+  "name": "sixbee",
+  "version": "1.0.0",
+  "description": "model & view",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "joey",
+  "license": "ISC"
+}
