@@ -4,8 +4,8 @@
 
 import _ from 'lodash';
 import PubSub from 'pubsub-js';
-import tool from '../instance/tool';
-import Curd from './curd';
+import tool from './instance/tool';
+import Curd from './lib/curd';
 
 let state = Symbol();
 let observerKey = Symbol();
@@ -66,18 +66,33 @@ export default class Model {
         }
     }
 
+    /**
+     * 订阅事件
+     * @param fn
+     * @returns {Function}
+     */
     subscribe(fn) {
         let token = PubSub.subscribe(this[observerKey], fn);
         this[observers].push(token);
-        return token;
+        return () => {
+            this.unsubscribe(token);
+        };
     };
 
+    /**
+     * 触发订阅事件
+     * @param data
+     */
     publish(data = {}) {
         if (this[observers] && this[observers].length > 0) {
             PubSub.publish(this[observerKey], data);
         }
     };
 
+    /**
+     * 取消订阅
+     * @param token
+     */
     unsubscribe(token = null) {
         if (token) {
             PubSub.unsubscribe(token);

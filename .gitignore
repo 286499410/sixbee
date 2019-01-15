@@ -5,3 +5,5 @@ node_modules
 npm-debug*
 *.bak.*
 .cache-loader
+p-test
+p-test/*

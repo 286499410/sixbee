@@ -1,5 +1,5 @@
 import lib from './lib';
-import Model from './lib/model';
+import Model from './model';
 let sixbee = {
     cache: {
         libs: {},
@@ -54,7 +54,7 @@ let sixbee = {
             }
         }
         return sixbee.cache.models[name];
-    }
+    },
 };
 
 export default sixbee;
