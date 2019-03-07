@@ -4,10 +4,6 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends2 = require('babel-runtime/helpers/extends');
-
-var _extends3 = _interopRequireDefault(_extends2);
-
 var _entries = require('babel-runtime/core-js/object/entries');
 
 var _entries2 = _interopRequireDefault(_entries);
@@ -15,6 +11,10 @@ var _entries2 = _interopRequireDefault(_entries);
 var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _extends2 = require('babel-runtime/helpers/extends');
+
+var _extends3 = _interopRequireDefault(_extends2);
 
 var _promise = require('babel-runtime/core-js/promise');
 
@@ -36,10 +36,6 @@ var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
-var _symbol = require('babel-runtime/core-js/symbol');
-
-var _symbol2 = _interopRequireDefault(_symbol);
-
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -48,7 +44,7 @@ var _pubsubJs = require('pubsub-js');
 
 var _pubsubJs2 = _interopRequireDefault(_pubsubJs);
 
-var _tool = require('./lib/tool');
+var _tool = require('./instance/tool');
 
 var _tool2 = _interopRequireDefault(_tool);
 
@@ -58,15 +54,12 @@ var _curd2 = _interopRequireDefault(_curd);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var state = (0, _symbol2.default)();
-var observerKey = (0, _symbol2.default)();
-var observers = (0, _symbol2.default)();
-
 var Model = function () {
     function Model(key) {
         (0, _classCallCheck3.default)(this, Model);
-
-        _initialiseProps.call(this);
+        this._fields = {};
+        this._state = {};
+        this._observers = [];
 
         this.key = key;
 
@@ -77,18 +70,13 @@ var Model = function () {
         this.group = _key$split2[0];
         this.name = _key$split2[1];
 
-        this[state] = this.getInitialState();
-        this[observerKey] = _tool2.default.uuid();
-        this[observers] = [];
+        this._state = this.getInitialState();
+        this._observerKey = _tool2.default.uuid();
+        this._observers = [];
         this.Curd = new _curd2.default(key);
     }
 
     (0, _createClass3.default)(Model, [{
-        key: 'getStateSymbol',
-        value: function getStateSymbol() {
-            return state;
-        }
-    }, {
         key: 'getInitialState',
         value: function getInitialState() {
             return {
@@ -96,48 +84,48 @@ var Model = function () {
                 page: 1,
                 pages: 0,
                 rows: 0,
-                limit: 50,
+                limit: 20,
                 order: 'id desc',
                 cond: {},
                 filter: {},
                 data: {},
                 list: [],
-                sums: {}
+                sums: {},
+                all: []
             };
         }
     }, {
-        key: 'getState',
-        value: function getState(key) {
-            if (key === undefined) {
-                return (0, _assign2.default)({}, this[state]);
-            } else {
-                return _lodash2.default.get(this[state], key);
-            }
-        }
-    }, {
-        key: 'setState',
-        value: function setState(nextState) {
+        key: 'state',
+        value: function state() {
+            var _state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
+
             var publish = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
-            (0, _assign2.default)(this[state], nextState);
-            if (publish) {
-                this.publish(this[state]);
+            if (_state === undefined) return this._state;else {
+                (0, _assign2.default)(this._state, _state);
+                if (publish) {
+                    this.publish(this._state);
+                }
             }
         }
     }, {
         key: 'subscribe',
         value: function subscribe(fn) {
-            var token = _pubsubJs2.default.subscribe(this[observerKey], fn);
-            this[observers].push(token);
-            return token;
+            var _this = this;
+
+            var token = _pubsubJs2.default.subscribe(this._observerKey, fn);
+            this._observers.push(token);
+            return function () {
+                _this.unsubscribe(token);
+            };
         }
     }, {
         key: 'publish',
         value: function publish() {
             var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-            if (this[observers] && this[observers].length > 0) {
-                _pubsubJs2.default.publish(this[observerKey], data);
+            if (this._observers && this._observers.length > 0) {
+                _pubsubJs2.default.publish(this._observerKey, data);
             }
         }
     }, {
@@ -148,7 +136,7 @@ var Model = function () {
             if (token) {
                 _pubsubJs2.default.unsubscribe(token);
             } else {
-                this[observers].map(function (token) {
+                this._observers.map(function (token) {
                     _pubsubJs2.default.unsubscribe(token);
                 });
             }
@@ -156,10 +144,10 @@ var Model = function () {
     }, {
         key: 'create',
         value: function create(data) {
-            var _this = this;
+            var _this2 = this;
 
             return new _promise2.default(function (resolve, reject) {
-                _this.Curd.create(data).then(function (res) {
+                _this2.Curd.create(data).then(function (res) {
                     if (res.requestId && res.createId) {
                         resolve(res);
                     } else if (res.errCode) {
@@ -173,10 +161,10 @@ var Model = function () {
     }, {
         key: 'update',
         value: function update(id, data) {
-            var _this2 = this;
+            var _this3 = this;
 
             return new _promise2.default(function (resolve, reject) {
-                _this2.Curd.update(id, data).then(function (res) {
+                _this3.Curd.update(id, data).then(function (res) {
                     if (res.errCode) {
                         reject(res);
                     } else if (res.requestId) {
@@ -190,10 +178,10 @@ var Model = function () {
     }, {
         key: 'delete',
         value: function _delete(params) {
-            var _this3 = this;
+            var _this4 = this;
 
             return new _promise2.default(function (resolve, reject) {
-                _this3.Curd.delete(params).then(function (res) {
+                _this4.Curd.delete(params).then(function (res) {
                     if (res.errCode) {
                         reject(res);
                     } else if (res.requestId) {
@@ -207,19 +195,19 @@ var Model = function () {
     }, {
         key: 'read',
         value: function read(id) {
-            var _this4 = this;
+            var _this5 = this;
 
             var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-            var currentState = this.getState();
+            var currentState = this.state();
             if (currentState.detailWith && !params.with) {
                 params.with = currentState.detailWith;
             }
             return new _promise2.default(function (resolve, reject) {
-                _this4.Curd.read(id, params).then(function (res) {
+                _this5.Curd.read(id, params).then(function (res) {
                     if (res.single && res.single.id) {
-                        _this4[state].data[res.single.id] = res.single;
-                        _this4.setState({});
+                        _this5._state.data[res.single.id] = res.single;
+                        _this5.publish(_this5._state);
                         resolve(res);
                     } else if (res.errCode) {
                         reject(res);
@@ -232,13 +220,13 @@ var Model = function () {
     }, {
         key: 'single',
         value: function single(params) {
-            var _this5 = this;
+            var _this6 = this;
 
             return new _promise2.default(function (resolve, reject) {
-                _this5.Curd.single(params).then(function (res) {
+                _this6.Curd.single(params).then(function (res) {
                     if (res.id) {
-                        _this5[state].data[res.id] = res;
-                        _this5.setState({});
+                        _this6._state.data[res.id] = res;
+                        _this6.publish(_this6._state);
                         resolve(res);
                     } else if (res.errCode) {
                         reject(res);
@@ -251,31 +239,32 @@ var Model = function () {
     }, {
         key: 'list',
         value: function list() {
-            var _this6 = this;
+            var _this7 = this;
 
             var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+            var autoUpdateState = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
-            var currentState = this.getState();
             params = (0, _assign2.default)({
-                field: currentState.field,
-                page: currentState.page,
-                limit: currentState.limit,
-                order: currentState.order,
-                with: currentState.with,
-                cond: _lodash2.default.merge({}, currentState.cond, this.filterToCond())
+                field: this._state.field,
+                page: this._state.page,
+                limit: this._state.limit,
+                order: this._state.order,
+                with: this._state.with,
+                cond: _lodash2.default.merge({}, this._state.cond, this.filterToCond())
             }, params);
-            if (currentState.sum) {
-                params.sum = currentState.sum;
+            if (this._state.sum) {
+                params.sum = this._state.sum;
             }
             return new _promise2.default(function (resolve, reject) {
-                _this6.Curd.list(params).then(function (res) {
+                _this7.Curd.list(params).then(function (res) {
                     if (res.list) {
-                        if (res.page) _this6[state].page = res.page;
-                        if (res.rows) _this6[state].rows = res.rows;
-                        if (res.pages) _this6[state].pages = res.pages;
-                        if (params.limit) _this6[state].limit = params.limit;
-                        if (res.sums) _this6[state].sums = res.sums;
-                        _this6.setState({ list: res.list });
+                        var state = { list: res.list };
+                        if (res.page) state.page = res.page;
+                        if (res.rows) state.rows = res.rows;
+                        if (res.pages) state.pages = res.pages;
+                        if (params.limit) state.limit = params.limit;
+                        if (res.sums) state.sums = res.sums;
+                        if (autoUpdateState) _this7.state(state);
                         resolve(res);
                     } else if (res.errCode) {
                         reject(res);
@@ -288,30 +277,95 @@ var Model = function () {
     }, {
         key: 'getAll',
         value: function getAll() {
-            var _this7 = this;
+            var _this8 = this;
 
             var refresh = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-            var list = this.getState('list');
+            var list = this._state.all;
             if (list.length > 0 && !refresh) {
                 return new _promise2.default(function (resolve, reject) {
                     resolve(list);
                 });
             } else {
                 return new _promise2.default(function (resolve, reject) {
-                    if (!_this7.allPromise || refresh) {
-                        _this7.allPromise = _this7.list({ limit: 1000 });
+                    if (!_this8._allPromise || refresh) {
+                        _this8._allPromise = _this8.list({ limit: 1000 }, false);
                     }
-                    _this7.allPromise.then(function (res) {
-                        resolve(res.list);
+                    _this8._allPromise.then(function (res) {
+                        if (res.list) {
+                            _this8.state({ all: res.list });
+                            resolve(res.list);
+                        } else if (res.errCode) {
+                            reject(res);
+                        }
                     });
                 });
             }
         }
     }, {
+        key: 'getLabels',
+        value: function getLabels() {
+            var labels = {};
+            for (var key in this._fields) {
+                labels[key] = _lodash2.default.get(this._fields[key], 'label') || key;
+            }
+            return labels;
+        }
+    }, {
+        key: 'field',
+        value: function field(key) {
+            var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
+
+            if (value === undefined) return this._fields[key];else {
+                this._fields[key] = value;
+                return this;
+            }
+        }
+    }, {
+        key: 'fields',
+        value: function fields() {
+            var _fields = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
+
+            if (_fields === undefined) return this._fields;else {
+                (0, _assign2.default)(this._fields, _fields);
+                return this;
+            }
+        }
+    }, {
+        key: 'getFields',
+        value: function getFields(columns) {
+            var _this9 = this;
+
+            var fields = [];
+            if (_lodash2.default.isArray(columns)) {
+                columns.map(function (column) {
+                    if (_lodash2.default.isString(column) && _this9._fields[column]) {
+                        column = (0, _extends3.default)({
+                            key: column
+                        }, _this9._fields[column]);
+                    }
+                    if (_lodash2.default.isObject(column)) {
+                        if (column.fields) {
+                            fields.push((0, _extends3.default)({}, column, {
+                                fields: (column.model || _this9).getFields(column.fields)
+                            }));
+                        } else if (column.key) {
+                            var field = (column.model || _this9)._fields[column.key] || {};
+                            fields.push((0, _extends3.default)({
+                                dataKey: column.key
+                            }, field, column));
+                        }
+                    } else {
+                        console.log(column, 'not found');
+                    }
+                });
+            }
+            return fields;
+        }
+    }, {
         key: 'filterToCond',
         value: function filterToCond() {
-            var filterData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this[state].filter;
+            var filterData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._state.filter;
 
             var cond = {};
             var _iteratorNormalCompletion = true;
@@ -324,7 +378,7 @@ var Model = function () {
                         key = _step$value[0],
                         value = _step$value[1];
 
-                    var field = this.fields[key] || {};
+                    var field = this._fields[key] || {};
                     if (field.filterCondKey === false) {
                         continue;
                     }
@@ -367,65 +421,13 @@ var Model = function () {
 
             return cond;
         }
+    }, {
+        key: 'getData',
+        value: function getData(id) {
+            return this._state.data[id];
+        }
     }]);
     return Model;
 }();
-
-var _initialiseProps = function _initialiseProps() {
-    var _this8 = this;
-
-    this.symbols = {
-        state: state,
-        observerKey: observerKey,
-        observers: observers
-    };
-    this.fields = {};
-
-    this.setData = function (data) {
-        if (!_this8[state].data) {
-            _this8[state].data = {};
-        }
-        (0, _assign2.default)(_this8[state].data, data);
-        _this8.setState({});
-    };
-
-    this.getData = function (key) {
-        return _this8[state].data[key];
-    };
-
-    this.getValidator = function () {
-        return App.validate(_this8.key);
-    };
-
-    this.getField = function (key) {
-        return _this8.fields[key] || {};
-    };
-
-    this.getFields = function (columns) {
-        var fields = [];
-        columns.map(function (column) {
-            if (_lodash2.default.isObject(column)) {
-                if (column.fields) {
-                    fields.push((0, _extends3.default)({}, column, {
-                        fields: _this8.getFields(column.fields)
-                    }));
-                } else if (column.key) {
-                    var field = column.model ? column.model.getField(column.key) : _this8.getField(column.key);
-                    fields.push((0, _extends3.default)({
-                        dataKey: column.key
-                    }, field, column));
-                }
-            } else if (_this8.fields[column]) {
-                fields.push((0, _extends3.default)({
-                    key: column,
-                    dataKey: column
-                }, _this8.fields[column]));
-            } else {
-                console.log(column, 'not found');
-            }
-        });
-        return fields;
-    };
-};
 
 exports.default = Model;

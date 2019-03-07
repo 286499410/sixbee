@@ -3,7 +3,9 @@
  */
 import param from 'jquery-param';
 import PubSub from 'pubsub-js';
+
 let uuid = require('node-uuid');
+import tool from '../instance/tool';
 
 export default class Request {
 
@@ -16,10 +18,11 @@ export default class Request {
     };
 
     config = {
-        cross: false,           //是否跨域
+        cross: true,           //是否跨域
         root: '',               //根地址
         baseUrl: '',            //基地址
-        dataType: 'json',       //请求数据类型
+        documentRoot: '',       //文件基地址
+        dataType: 'form',       //请求数据类型
         responseType: 'json',   //应答数据类型
         headers: {},
     };
@@ -31,6 +34,10 @@ export default class Request {
 
     getRoot() {
         return this.config.root;
+    }
+
+    getDocumentRoot() {
+        return this.config.documentRoot;
     }
 
     setBaseUrl(baseUrl) {
@@ -66,6 +73,14 @@ export default class Request {
      */
     setHeader(header) {
         Object.assign(this.config.headers, header);
+        return this;
+    }
+
+    /**
+     * 清除header
+     */
+    clearHeader() {
+        this.config.headers = {};
         return this;
     }
 
@@ -168,7 +183,7 @@ export default class Request {
                 body = JSON.stringify(data);
                 break;
             default:
-                body = param(data);
+                body = tool.objectToFormData(data);
         }
         return body;
     };
@@ -179,23 +194,22 @@ export default class Request {
             mode: this.getMode(),
             method: method,
             'Cache-Control': 'no-cache',
-            headers: Object.assign({
-                'Content-Type': this.contentType[dataType]
-            }, headers)
+            headers: Object.assign({}, headers)
         };
-        if ((typeof FormData != 'undefined') && (data instanceof FormData)) {
-            fetchProps.body = data;
-            delete fetchProps.headers['Content-Type'];
-        } else {
-            switch (method) {
-                case 'GET':
-                    url += '?' + param(data);
-                    break;
-                case 'POST':
-                case 'PUT':
-                    fetchProps.body = this.getBody(data, dataType);
-                    break;
-            }
+        if (['json'].indexOf(dataType) >= 0) {
+            fetchProps.headers['Content-Type'] = this.contentType[dataType];
+        }
+        switch (method) {
+            case 'GET':
+                url += '?' + param(data);
+                break;
+            case 'POST':
+                fetchProps.body = this.getBody(data, dataType);
+                break;
+            case 'PUT':
+                fetchProps.body = this.getBody({...data, _method: 'PUT'}, dataType);
+                fetchProps.method = 'POST';
+                break;
         }
         let promise = fetch(url, fetchProps);
         promise.then((res) => {

@@ -2,9 +2,14 @@
  * Created by zhengzhaowei on 2018/5/8.
  */
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {BrowserRouter, Route, Link, Redirect, Switch, Prompt} from 'react-router-dom';
 
 export default class Router extends Component {
+
+    static contextTypes = {
+        App: PropTypes.object,
+    };
 
     constructor(props) {
         super(props);
@@ -21,7 +26,7 @@ export default class Router extends Component {
                     {
                         this.props.route.switch.map((route, index) => (
                             <Route key={index} exact={route.exact} path={route.path} render={(props) => (
-                                <Gateway {...props} switch={route}/>
+                                <Gateway {...props} switch={route} route={this.props.route}/>
                             )}/>))
                     }
                     <Route path="/" render={(props) => (
@@ -36,9 +41,17 @@ export default class Router extends Component {
 
 class Gateway extends Component {
 
+    static contextTypes = {
+        App: PropTypes.object,
+    };
+
+    getLayout(route) {
+        return route.layout !== false ? route.layout || this.props.route.layout : false;
+    }
 
     render() {
         let props = {...this.props};
+        let App = this.context.App;
         App.history = props.history;
         let middleware = props.switch ? props.switch.middleware : (props.route ? props.route.middleware : []);
         //中间件处理
@@ -51,19 +64,21 @@ class Gateway extends Component {
             }
         }
         if (props.switch) {
-            if (props.switch.layout) {
-                return <props.switch.layout {...props}>
+            //自定义的路由匹配
+            let Layout = this.getLayout(props.switch);
+            if (Layout) {
+                return <Layout {...props}>
                     <props.switch.component {...props}/>
-                </props.switch.layout>;
+                </Layout>;
             }
             return <props.switch.component {...props}/>;
         } else if (props.route) {
             if (props.route.autoMatch) {
+                //按路径规则自动匹配
                 let pathname = props.location.pathname;
                 let paths;
                 let match = {};
                 let query = {};
-                pathname = pathname.replace(App.request.getRoot(), '');
                 pathname = pathname.replace(/\/*/, '');
                 pathname = pathname.replace(/\/*$/, '');
                 paths = pathname.split('/');
@@ -97,39 +112,32 @@ class Gateway extends Component {
                         filename += '/index.js';
                     }
                     let Component = context(filename).default;
-                    if (props.route.component) {
-                        return <props.route.component {...props}>
-                            <Component {...props}/>
-                        </props.route.component>
+                    let Layout = props.route.layout;
+                    if (Layout) {
+                        return <Layout {...props}><Component {...props}/></Layout>
                     } else {
-                        if (props.route.layout) {
-                            let Layout = props.route.layout;
-                            return <Layout {...props}><Component {...props}/></Layout>
-                        } else {
-                            return <Component {...props}/>
-                        }
+                        return <Component {...props}/>
                     }
                 } catch (e) {
-                    console.log('router error', e);
-                    return <Switch>
-                        {
-                            this.props.route.noMatch.map((route, index) => (
-                                <Route key={index} exact={route.exact} path={route.path} render={(nextProps) => {
-                                    let Component = route.component;
-                                    nextProps.route = props.route;
-                                    if (props.route.layout) {
-                                        let Layout = props.route.layout;
-                                        return <Layout {...nextProps}><Component {...nextProps}/></Layout>
-                                    } else {
-                                        return <Component {...nextProps}/>
-                                    }
-                                }}/>)
-                            )
-                        }
-                    </Switch>
+                    console.log('route not found:' + props.location.pathname);
                 }
             }
-
+            return <Switch>
+                {
+                    this.props.route.noMatch.map((route, index) => (
+                        <Route key={index} exact={route.exact} path={route.path} render={(nextProps) => {
+                            let Component = route.component;
+                            nextProps.route = props.route;
+                            let Layout = this.getLayout(route);
+                            if (Layout) {
+                                return <Layout {...nextProps}><Component {...nextProps}/></Layout>
+                            } else {
+                                return <Component {...nextProps}/>
+                            }
+                        }}/>)
+                    )
+                }
+            </Switch>
         }
     }
 }

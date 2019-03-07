@@ -6,7 +6,7 @@
   "license": "ISC",
   "main": "dist/index.js",
   "scripts": {
-    "compile": "babel -d dist/ src/",
+    "compile": "babel -d dist/ src/ -w",
     "prepublish": "npm run compile",
     "server": "node app.babel.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,16 +23,12 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
-    "mocha": "^5.2.0",
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0",
-    "react-router": "^4.3.1",
-    "react-router-dom": "^4.3.1"
+    "lodash": "^4.17.11",
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "crypto-js": "^3.1.9-1",
     "jquery-param": "^1.0.1",
-    "lodash": "^4.17.11",
     "node-uuid": "^1.4.8",
     "prop-types": "^15.6.2",
     "pubsub-js": "^1.7.0",
@@ -40,7 +36,9 @@
   },
   "peerDependencies": {
     "react": ">=16",
+    "react-dom": ">=16",
     "react-router": ">=4",
-    "react-router-dom": ">=4"
+    "react-router-dom": ">=4",
+    "lodash": ">=4.17.0"
   }
 }

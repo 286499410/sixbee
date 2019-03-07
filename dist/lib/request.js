@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends2 = require('babel-runtime/helpers/extends');
+
+var _extends3 = _interopRequireDefault(_extends2);
+
 var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
@@ -28,6 +32,10 @@ var _pubsubJs = require('pubsub-js');
 
 var _pubsubJs2 = _interopRequireDefault(_pubsubJs);
 
+var _tool = require('../instance/tool');
+
+var _tool2 = _interopRequireDefault(_tool);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var uuid = require('node-uuid');
@@ -46,10 +54,11 @@ var Request = function () {
             js: 'application/x-javascript'
         };
         this.config = {
-            cross: false,
+            cross: true,
             root: '',
             baseUrl: '',
-            dataType: 'json',
+            documentRoot: '',
+            dataType: 'form',
             responseType: 'json',
             headers: {}
         };
@@ -73,7 +82,7 @@ var Request = function () {
                     body = (0, _stringify2.default)(data);
                     break;
                 default:
-                    body = (0, _jqueryParam2.default)(data);
+                    body = _tool2.default.objectToFormData(data);
             }
             return body;
         };
@@ -87,23 +96,22 @@ var Request = function () {
                 mode: _this.getMode(),
                 method: method,
                 'Cache-Control': 'no-cache',
-                headers: (0, _assign2.default)({
-                    'Content-Type': _this.contentType[dataType]
-                }, headers)
+                headers: (0, _assign2.default)({}, headers)
             };
-            if (typeof FormData != 'undefined' && data instanceof FormData) {
-                fetchProps.body = data;
-                delete fetchProps.headers['Content-Type'];
-            } else {
-                switch (method) {
-                    case 'GET':
-                        url += '?' + (0, _jqueryParam2.default)(data);
-                        break;
-                    case 'POST':
-                    case 'PUT':
-                        fetchProps.body = _this.getBody(data, dataType);
-                        break;
-                }
+            if (['json'].indexOf(dataType) >= 0) {
+                fetchProps.headers['Content-Type'] = _this.contentType[dataType];
+            }
+            switch (method) {
+                case 'GET':
+                    url += '?' + (0, _jqueryParam2.default)(data);
+                    break;
+                case 'POST':
+                    fetchProps.body = _this.getBody(data, dataType);
+                    break;
+                case 'PUT':
+                    fetchProps.body = _this.getBody((0, _extends3.default)({}, data, { _method: 'PUT' }), dataType);
+                    fetchProps.method = 'POST';
+                    break;
             }
             var promise = fetch(url, fetchProps);
             promise.then(function (res) {
@@ -146,6 +154,11 @@ var Request = function () {
             return this.config.root;
         }
     }, {
+        key: 'getDocumentRoot',
+        value: function getDocumentRoot() {
+            return this.config.documentRoot;
+        }
+    }, {
         key: 'setBaseUrl',
         value: function setBaseUrl(baseUrl) {
             this.config({ baseUrl: baseUrl });
@@ -172,6 +185,12 @@ var Request = function () {
         key: 'setHeader',
         value: function setHeader(header) {
             (0, _assign2.default)(this.config.headers, header);
+            return this;
+        }
+    }, {
+        key: 'clearHeader',
+        value: function clearHeader() {
+            this.config.headers = {};
             return this;
         }
     }, {

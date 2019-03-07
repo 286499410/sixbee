@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _typeof2 = require('babel-runtime/helpers/typeof');
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
 var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
 
 var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
@@ -326,6 +330,41 @@ var Tool = function () {
                 return 'element';
             }
             return map[toString.call(obj)];
+        }
+    }, {
+        key: 'objectToFormData',
+        value: function objectToFormData(obj, form, namespace) {
+            var _this2 = this;
+
+            var fd = form || new FormData();
+            var formKey = void 0;
+            if (_lodash2.default.isArray(obj)) {
+                obj.map(function (item, index) {
+                    if (_lodash2.default.isObject(item) && !(item instanceof File)) {
+                        _this2.objectToFormData(item, fd, namespace + '[' + index + ']');
+                    } else {
+                        fd.append(namespace + '[]', item);
+                    }
+                });
+            } else {
+                for (var property in obj) {
+                    if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+
+                        if (namespace) {
+                            formKey = namespace + '[' + property + ']';
+                        } else {
+                            formKey = property;
+                        }
+
+                        if ((0, _typeof3.default)(obj[property]) === 'object' && !(obj[property] instanceof File)) {
+                            this.objectToFormData(obj[property], fd, formKey);
+                        } else {
+                            fd.append(formKey, obj[property]);
+                        }
+                    }
+                }
+            }
+            return fd;
         }
     }]);
     return Tool;

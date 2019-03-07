@@ -3,6 +3,7 @@
  */
 
 import _ from 'lodash';
+
 let md5 = require('crypto-js/md5');
 let uuid = require('node-uuid');
 
@@ -15,6 +16,44 @@ export default class Tool {
     time = () => {
         let timestamp = new Date().getTime();
         return parseInt(timestamp / 1000);
+    };
+
+    /**
+     * 日期转时间戳
+     * @param str
+     * @returns {number}
+     */
+    strToTime = (str) => {
+        return parseInt(this.strToDate(str).getTime() / 1000);
+    };
+
+    /**
+     * 转成常见日期格式
+     * @param date
+     */
+    dateToStr = (date) => {
+        let year = date.getFullYear().toString();
+        let month = (date.getMonth() + 1).toString();
+        date = date.getDate().toString();
+        return year + '-' + month.padStart(2, '0') + '-' + date.padStart(2, '0');
+    };
+
+    /**
+     * 字符串转Date类型
+     * @param str
+     * @returns {*}
+     */
+    strToDate = (str) => {
+        if (_.isDate(str)) {
+            return str;
+        } else if (str === '') {
+            return undefined;
+        } else if (_.isString(str)) {
+            str = str.replace(/-/g, '/');
+            return new Date(str);
+        } else {
+            return undefined;
+        }
     };
 
     /**
@@ -127,7 +166,7 @@ export default class Tool {
             if (str.lastIndexOf('零') == str.length - 1) {
                 str = str.substr(0, str.length - 1);
             }
-            if(str) {
+            if (str) {
                 chinese = str + units[2][i] + chinese;
             }
         }
@@ -376,5 +415,46 @@ export default class Tool {
         }
         return map[toString.call(obj)];
     }
+
+    objectToFormData(obj, form, namespace) {
+        let fd = form || new FormData();
+        let formKey;
+        if (_.isArray(obj)) {
+            obj.map((item, index) => {
+                if (_.isObject(item) && !(item instanceof File)) {
+                    this.objectToFormData(item, fd, namespace + '[' + index + ']');
+                } else {
+                    // 若是数组则在关键字后面加上[]
+                    fd.append(namespace + '[]', item)
+                }
+            })
+        } else {
+            for (let property in obj) {
+                if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+
+                    if (namespace) {
+                        // 若是对象，则这样
+                        formKey = namespace + '[' + property + ']';
+                    } else {
+                        formKey = property;
+                    }
+
+                    // if the property is an object, but not a File,
+                    // use recursivity.
+                    if (typeof obj[property] === 'object' && !(obj[property] instanceof File)) {
+                        // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
+                        this.objectToFormData(obj[property], fd, formKey);
+                    } else {
+
+                        // if it's a string or a File object
+                        fd.append(formKey, obj[property]);
+                    }
+
+                }
+            }
+        }
+        return fd;
+
+    };
 
 }

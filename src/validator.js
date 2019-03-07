@@ -34,37 +34,52 @@ export default class Validator {
         'regex': '[label]正则匹配错误'
     };
 
-    constructor() {
+    constructor(config = {}) {
         this[_state] = {
             rule: {},
             message: {},
             scene: {}
         };
+        this.config(config);
         this[_scene] = false;
     }
 
-    setState = (state) => {
+    config(config) {
+        if (config.rule)
+            this.rule = config.rule;
+        if (config.message)
+            this.message = config.message;
+        if (config.scene)
+            this.scene = config.scene;
+        if (config.label)
+            this.label = config.label;
+    }
+
+    setState(state) {
         Object.assign(this[_state], state);
-    };
+        return this;
+    }
 
-    setScene = (scene) => {
+    setScene(scene) {
         this[_scene] = scene;
-    };
+        return this;
+    }
 
-    setLabel = (key, value) => {
+    setLabel(key, value) {
         if (_.isObject(key)) {
             this.label = {...this.label, ...key};
         } else {
             this.label[key] = value;
         }
-    };
+        return this;
+    }
 
     /**
      * 解析规则
      * @param config
      * @returns {{}}
      */
-    parseRule = (config) => {
+    parseRule(config) {
         if (!lib('object').isEmpty(this[_state].rule)) {
             return this[_state].rule;
         }
@@ -94,7 +109,7 @@ export default class Validator {
         }
         this.setState({rule: rule});
         return rule;
-    };
+    }
 
     /**
      * 解析错误消息

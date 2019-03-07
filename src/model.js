@@ -7,32 +7,22 @@ import PubSub from 'pubsub-js';
 import tool from './instance/tool';
 import Curd from './lib/curd';
 
-let state = Symbol();
-let observerKey = Symbol();
-let observers = Symbol();
-
 export default class Model {
 
-    symbols = {
-        state: state,
-        observerKey: observerKey,
-        observers: observers
-    };
-
     key;
-    fields = {};
+    _fields = {};               //字段定义
+
+    _state = {};                //数据
+    _observerKey;               //观察者KEY
+    _observers = [];             //监听事件
 
     constructor(key) {
         this.key = key;
         [this.group, this.name] = key.split('.');
-        this[state] = this.getInitialState();
-        this[observerKey] = tool.uuid();
-        this[observers] = [];
+        this._state = this.getInitialState();
+        this._observerKey = tool.uuid();
+        this._observers = [];
         this.Curd = new Curd(key);
-    }
-
-    getStateSymbol() {
-        return state;
     }
 
     getInitialState() {
@@ -41,28 +31,25 @@ export default class Model {
             page: 1,
             pages: 0,
             rows: 0,
-            limit: 50,
+            limit: 20,
             order: 'id desc',
             cond: {},
             filter: {},
             data: {},
             list: [],
-            sums: {}
+            sums: {},
+            all: []
         }
     }
 
-    getState(key) {
-        if (key === undefined) {
-            return Object.assign({}, this[state]);
-        } else {
-            return _.get(this[state], key);
-        }
-    }
-
-    setState(nextState, publish = true) {
-        Object.assign(this[state], nextState);
-        if (publish) {
-            this.publish(this[state]);
+    state(state = undefined, publish = true) {
+        if (state === undefined)
+            return this._state;
+        else {
+            Object.assign(this._state, state);
+            if (publish) {
+                this.publish(this._state);
+            }
         }
     }
 
@@ -72,22 +59,22 @@ export default class Model {
      * @returns {Function}
      */
     subscribe(fn) {
-        let token = PubSub.subscribe(this[observerKey], fn);
-        this[observers].push(token);
+        let token = PubSub.subscribe(this._observerKey, fn);
+        this._observers.push(token);
         return () => {
             this.unsubscribe(token);
         };
-    };
+    }
 
     /**
      * 触发订阅事件
      * @param data
      */
     publish(data = {}) {
-        if (this[observers] && this[observers].length > 0) {
-            PubSub.publish(this[observerKey], data);
+        if (this._observers && this._observers.length > 0) {
+            PubSub.publish(this._observerKey, data);
         }
-    };
+    }
 
     /**
      * 取消订阅
@@ -97,11 +84,11 @@ export default class Model {
         if (token) {
             PubSub.unsubscribe(token);
         } else {
-            this[observers].map((token) => {
+            this._observers.map((token) => {
                 PubSub.unsubscribe(token);
             });
         }
-    };
+    }
 
     /**
      * 新增数据
@@ -113,6 +100,7 @@ export default class Model {
             this.Curd.create(data).then((res) => {
                 if (res.requestId && res.createId) {
                     resolve(res);
+                    this.clearAll();
                 } else if (res.errCode) {
                     reject(res);
                 }
@@ -120,7 +108,7 @@ export default class Model {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 更新数据
@@ -135,12 +123,13 @@ export default class Model {
                     reject(res);
                 } else if (res.requestId) {
                     resolve(res);
+                    this.clearAll();
                 }
             }, (res) => {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 删除数据
@@ -154,12 +143,13 @@ export default class Model {
                     reject(res);
                 } else if (res.requestId) {
                     resolve(res);
+                    this.clearAll();
                 }
             }, (res) => {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 读指定ID的单条数据
@@ -168,15 +158,15 @@ export default class Model {
      * @returns {Promise<any>}
      */
     read(id, params = {}) {
-        let currentState = this.getState();
+        let currentState = this.state();
         if (currentState.detailWith && !params.with) {
             params.with = currentState.detailWith
         }
         return new Promise((resolve, reject) => {
             this.Curd.read(id, params).then((res) => {
                 if (res.single && res.single.id) {
-                    this[state].data[res.single.id] = res.single;
-                    this.setState({});
+                    this._state.data[res.single.id] = res.single;
+                    this.publish(this._state);
                     resolve(res);
                 } else if (res.errCode) {
                     reject(res);
@@ -185,7 +175,7 @@ export default class Model {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 读单条数据
@@ -196,8 +186,8 @@ export default class Model {
         return new Promise((resolve, reject) => {
             this.Curd.single(params).then((res) => {
                 if (res.id) {
-                    this[state].data[res.id] = res;
-                    this.setState({});
+                    this._state.data[res.id] = res;
+                    this.publish(this._state);
                     resolve(res);
                 } else if (res.errCode) {
                     reject(res);
@@ -206,35 +196,36 @@ export default class Model {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 读多条数据
      * @param params
      * @returns {Promise<any>}
      */
-    list(params = {}) {
-        let currentState = this.getState();
+    list(params = {}, autoUpdateState = true) {
         params = Object.assign({
-            field: currentState.field,
-            page: currentState.page,
-            limit: currentState.limit,
-            order: currentState.order,
-            with: currentState.with,
-            cond: _.merge({}, currentState.cond, this.filterToCond())
+            field: this._state.field,
+            page: this._state.page,
+            limit: this._state.limit,
+            order: this._state.order,
+            with: this._state.with,
+            cond: _.merge({}, this._state.cond, this.filterToCond())
         }, params);
-        if (currentState.sum) {
-            params.sum = currentState.sum
+        if (this._state.sum) {
+            params.sum = this._state.sum
         }
         return new Promise((resolve, reject) => {
             this.Curd.list(params).then((res) => {
                 if (res.list) {
-                    if (res.page) this[state].page = res.page;
-                    if (res.rows) this[state].rows = res.rows;
-                    if (res.pages) this[state].pages = res.pages;
-                    if (params.limit) this[state].limit = params.limit;
-                    if (res.sums) this[state].sums = res.sums;
-                    this.setState({list: res.list});
+                    let state = {list: res.list};
+                    if (res.page) state.page = res.page;
+                    if (res.rows) state.rows = res.rows;
+                    if (res.pages) state.pages = res.pages;
+                    if (params.limit) state.limit = params.limit;
+                    if (res.sums) state.sums = res.sums;
+                    if (autoUpdateState)
+                        this.state(state);
                     resolve(res);
                 } else if (res.errCode) {
                     reject(res);
@@ -243,7 +234,7 @@ export default class Model {
                 reject(res);
             });
         });
-    };
+    }
 
     /**
      * 读全部数据
@@ -251,81 +242,110 @@ export default class Model {
      * @returns {Promise<any>}
      */
     getAll(refresh = false) {
-        let list = this.getState('list');
+        let list = this._state.all;
         if (list.length > 0 && !refresh) {
+            //有数据，不强制刷新
             return new Promise((resolve, reject) => {
                 resolve(list)
             });
         } else {
             return new Promise((resolve, reject) => {
-                if (!this.allPromise || refresh) {
-                    this.allPromise = this.list({limit: 1000});
+                if (!this._allPromise || refresh) {
+                    this._allPromise = this.list({limit: 1000}, false);
                 }
-                this.allPromise.then((res) => {
-                    resolve(res.list)
+                this._allPromise.then((res) => {
+                    if (res.list) {
+                        this.state({all: res.list});
+                        resolve(res.list);
+                    } else if (res.errCode) {
+                        reject(res);
+                    }
                 });
             });
         }
     }
 
-    setData = (data) => {
-        if (!this[state].data) {
-            this[state].data = {};
+    clearAll() {
+        this._state.all = [];
+        this._allPromise = undefined;
+    }
+
+    getLabels() {
+        let labels = {};
+        for (let key in this._fields) {
+            labels[key] = _.get(this._fields[key], 'label') || key;
         }
-        Object.assign(this[state].data, data);
-        this.setState({});
-    };
+        return labels;
+    }
 
-    getData = (key) => {
-        return this[state].data[key];
-    };
+    /**
+     * 获取/设置单个字段
+     * @param key
+     * @returns {*|{}}
+     */
+    field(key, value = undefined) {
+        if (value === undefined)
+            return this._fields[key];
+        else {
+            this._fields[key] = value;
+            return this;
+        }
+    }
 
-    getValidator = () => {
-        return App.validate(this.key);
-    };
+    /**
+     * 获取/设置多个字段
+     * @param fields
+     * @returns {Model}
+     */
+    fields(fields = undefined) {
+        if (fields === undefined)
+            return this._fields;
+        else {
+            Object.assign(this._fields, fields);
+            return this;
+        }
+    }
 
-    getField = (key) => {
-        return this.fields[key] || {}
-    };
-
-    getFields = (columns) => {
+    getFields(columns) {
         let fields = [];
-        columns.map((column) => {
-            if (_.isObject(column)) {
-                if (column.fields) {
-                    fields.push({
-                        ...column,
-                        fields: this.getFields(column.fields)
-                    });
-                } else if (column.key) {
-                    let field = column.model ? column.model.getField(column.key) : this.getField(column.key);
-                    fields.push({
-                        dataKey: column.key,
-                        ...field,
-                        ...column
-                    });
+        if (_.isArray(columns)) {
+            columns.map((column) => {
+                if (_.isString(column) && this._fields[column]) {
+                    column = {
+                        key: column,
+                        ...this._fields[column]
+                    };
                 }
-            } else if (this.fields[column]) {
-                fields.push({
-                    key: column,
-                    dataKey: column,
-                    ...this.fields[column]
-                });
-            } else {
-                console.log(column, 'not found')
-            }
-        });
+                if (_.isObject(column)) {
+                    if (column.fields) {
+                        fields.push({
+                            ...column,
+                            fields: (column.model || this).getFields(column.fields)
+                        });
+                    } else if (column.key) {
+                        let field = (column.model || this)._fields[column.key] || {};
+                        fields.push({
+                            dataKey: column.key,
+                            ...field,
+                            ...column
+                        });
+                    }
+                } else {
+                    console.log(column, 'not found')
+                }
+            });
+        }
         return fields;
-    };
+    }
 
     /**
      * 过滤数据转查询条件
      * @param filterData
      */
-    filterToCond(filterData = this[state].filter) {
+    filterToCond(filterData = this._state.filter) {
         let cond = {};
         for (let [key, value] of Object.entries(filterData)) {
-            let field = this.fields[key] || {};
+            let field = this._fields[key] || {};
             if (field.filterCondKey === false) {
                 continue;
             }
@@ -350,4 +370,12 @@ export default class Model {
         return cond;
     }
 
+    /**
+     * 获取指定ID的数据
+     * @param key
+     * @returns {*}
+     */
+    getData(id) {
+        return this._state.data[id];
+    }
 }
