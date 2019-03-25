@@ -53,7 +53,7 @@ class Gateway extends Component {
         let props = {...this.props};
         let App = this.context.App;
         App.history = props.history;
-        let middleware = props.switch ? props.switch.middleware : (props.route ? props.route.middleware : []);
+        let middleware = props.switch && props.switch.middleware ? props.switch.middleware : (props.route ? props.route.middleware : []);
         //中间件处理
         if (middleware && middleware.length > 0) {
             for (let name of middleware) {

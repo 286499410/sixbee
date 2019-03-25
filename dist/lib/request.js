@@ -36,6 +36,8 @@ var _tool = require('../instance/tool');
 
 var _tool2 = _interopRequireDefault(_tool);
 
+require('es6-promise');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var uuid = require('node-uuid');

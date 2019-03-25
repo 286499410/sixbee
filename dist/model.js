@@ -148,7 +148,8 @@ var Model = function () {
 
             return new _promise2.default(function (resolve, reject) {
                 _this2.Curd.create(data).then(function (res) {
-                    if (res.requestId && res.createId) {
+                    if (res.requestId && (res.createId || res.id)) {
+                        _this2.clearAll();
                         resolve(res);
                     } else if (res.errCode) {
                         reject(res);
@@ -168,7 +169,11 @@ var Model = function () {
                     if (res.errCode) {
                         reject(res);
                     } else if (res.requestId) {
+                        if (_this3._state.data[id]) {
+                            delete _this3._state.data[id];
+                        }
                         resolve(res);
+                        _this3.clearAll();
                     }
                 }, function (res) {
                     reject(res);
@@ -186,6 +191,7 @@ var Model = function () {
                         reject(res);
                     } else if (res.requestId) {
                         resolve(res);
+                        _this4.clearAll();
                     }
                 }, function (res) {
                     reject(res);
@@ -244,7 +250,7 @@ var Model = function () {
             var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
             var autoUpdateState = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
-            params = (0, _assign2.default)({
+            params = _lodash2.default.merge({
                 field: this._state.field,
                 page: this._state.page,
                 limit: this._state.limit,
@@ -303,6 +309,12 @@ var Model = function () {
             }
         }
     }, {
+        key: 'clearAll',
+        value: function clearAll() {
+            this._state.all = [];
+            this._allPromise = undefined;
+        }
+    }, {
         key: 'getLabels',
         value: function getLabels() {
             var labels = {};
@@ -330,6 +342,13 @@ var Model = function () {
                 (0, _assign2.default)(this._fields, _fields);
                 return this;
             }
+        }
+    }, {
+        key: 'getField',
+        value: function getField(key) {
+            return (0, _extends3.default)({
+                key: key
+            }, this._fields[key]);
         }
     }, {
         key: 'getFields',

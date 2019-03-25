@@ -40,6 +40,30 @@ var Tool = function () {
             return parseInt(timestamp / 1000);
         };
 
+        this.strToTime = function (str) {
+            return parseInt(_this.strToDate(str).getTime() / 1000);
+        };
+
+        this.dateToStr = function (date) {
+            var year = date.getFullYear().toString();
+            var month = (date.getMonth() + 1).toString();
+            date = date.getDate().toString();
+            return year + '-' + month.padStart(2, '0') + '-' + date.padStart(2, '0');
+        };
+
+        this.strToDate = function (str) {
+            if (_lodash2.default.isDate(str)) {
+                return str;
+            } else if (str === '') {
+                return undefined;
+            } else if (_lodash2.default.isString(str)) {
+                str = str.replace(/-/g, '/');
+                return new Date(str);
+            } else {
+                return undefined;
+            }
+        };
+
         this.date = function () {
             var format = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Y-m-d H:i:s';
             var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _this.time();

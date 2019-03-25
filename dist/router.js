@@ -115,7 +115,7 @@ var Gateway = function (_Component2) {
             var props = (0, _extends3.default)({}, this.props);
             var App = this.context.App;
             App.history = props.history;
-            var middleware = props.switch ? props.switch.middleware : props.route ? props.route.middleware : [];
+            var middleware = props.switch && props.switch.middleware ? props.switch.middleware : props.route ? props.route.middleware : [];
 
             if (middleware && middleware.length > 0) {
                 var _iteratorNormalCompletion = true;

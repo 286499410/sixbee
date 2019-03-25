@@ -6,7 +6,7 @@ import PubSub from 'pubsub-js';
 
 let uuid = require('node-uuid');
 import tool from '../instance/tool';
-
+import "es6-promise";
 export default class Request {
 
     contentType = {

@@ -98,9 +98,9 @@ export default class Model {
     create(data) {
         return new Promise((resolve, reject) => {
             this.Curd.create(data).then((res) => {
-                if (res.requestId && res.createId) {
-                    resolve(res);
+                if (res.requestId && (res.createId || res.id)) {
                     this.clearAll();
+                    resolve(res);
                 } else if (res.errCode) {
                     reject(res);
                 }
@@ -122,6 +122,9 @@ export default class Model {
                 if (res.errCode) {
                     reject(res);
                 } else if (res.requestId) {
+                    if(this._state.data[id]) {
+                        delete this._state.data[id];
+                    }
                     resolve(res);
                     this.clearAll();
                 }
@@ -204,7 +207,7 @@ export default class Model {
      * @returns {Promise<any>}
      */
     list(params = {}, autoUpdateState = true) {
-        params = Object.assign({
+        params = _.merge({
             field: this._state.field,
             page: this._state.page,
             limit: this._state.limit,
@@ -304,6 +307,13 @@ export default class Model {
             Object.assign(this._fields, fields);
             return this;
         }
+    }
+
+    getField(key) {
+        return {
+            key: key,
+            ...this._fields[key]
+        };
     }
 
     getFields(columns) {
