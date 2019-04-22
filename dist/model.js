@@ -91,7 +91,8 @@ var Model = function () {
                 data: {},
                 list: [],
                 sums: {},
-                all: []
+                all: [],
+                with: ''
             };
         }
     }, {
@@ -286,6 +287,7 @@ var Model = function () {
             var _this8 = this;
 
             var refresh = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+            var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             var list = this._state.all;
             if (list.length > 0 && !refresh) {
@@ -402,7 +404,7 @@ var Model = function () {
                         continue;
                     }
                     var filterKey = field.filterKey || key;
-                    var filterCondKey = field.filterCondKey || '=';
+                    var filterCondKey = field.filterCondKey;
                     if (value !== undefined && value !== '' && value !== null) {
                         _lodash2.default.set(cond, filterKey, {});
                         if (filterCondKey == 'between') {
@@ -419,7 +421,11 @@ var Model = function () {
                                 _lodash2.default.set(cond, filterKey + '.' + filterCondKey, value);
                             }
                         } else {
-                            _lodash2.default.set(cond, filterKey + '.' + filterCondKey, value);
+                            if (filterCondKey) {
+                                _lodash2.default.set(cond, filterKey + '.' + filterCondKey, value);
+                            } else {
+                                _lodash2.default.set(cond, filterKey, value);
+                            }
                         }
                     }
                 }

@@ -52,7 +52,7 @@ class Connect extends Component {
 
     render() {
         let Component = this.props.component;
-        return <Component key={window.location.href} {...{...this.props, models: this.models, data: this.state}}/>
+        return <Component {...{...this.props, models: this.models, data: this.state}} key={window.location.href} />
     }
 }
 

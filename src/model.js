@@ -38,7 +38,8 @@ export default class Model {
             data: {},
             list: [],
             sums: {},
-            all: []
+            all: [],
+            with: ''
         }
     }
 
@@ -122,7 +123,7 @@ export default class Model {
                 if (res.errCode) {
                     reject(res);
                 } else if (res.requestId) {
-                    if(this._state.data[id]) {
+                    if (this._state.data[id]) {
                         delete this._state.data[id];
                     }
                     resolve(res);
@@ -244,7 +245,7 @@ export default class Model {
      * @param refresh
      * @returns {Promise<any>}
      */
-    getAll(refresh = false) {
+    getAll(refresh = false, params = {}) {
         let list = this._state.all;
         if (list.length > 0 && !refresh) {
             //有数据，不强制刷新
@@ -360,7 +361,7 @@ export default class Model {
                 continue;
             }
             let filterKey = field.filterKey || key;
-            let filterCondKey = field.filterCondKey || '=';
+            let filterCondKey = field.filterCondKey;
             if (value !== undefined && value !== '' && value !== null) {
                 _.set(cond, filterKey, {});
                 if (filterCondKey == 'between') {
@@ -373,7 +374,11 @@ export default class Model {
                         _.set(cond, filterKey + '.' + filterCondKey, value);
                     }
                 } else {
-                    _.set(cond, filterKey + '.' + filterCondKey, value);
+                    if (filterCondKey) {
+                        _.set(cond, filterKey + '.' + filterCondKey, value);
+                    } else {
+                        _.set(cond, filterKey, value);
+                    }
                 }
             }
         }

@@ -4,9 +4,21 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _entries = require('babel-runtime/core-js/object/entries');
+
+var _entries2 = _interopRequireDefault(_entries);
+
 var _typeof2 = require('babel-runtime/helpers/typeof');
 
 var _typeof3 = _interopRequireDefault(_typeof2);
+
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
 
 var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
 
@@ -356,24 +368,65 @@ var Tool = function () {
             return map[toString.call(obj)];
         }
     }, {
+        key: 'objectToKeyValue',
+        value: function objectToKeyValue(obj, namespace) {
+            var _this2 = this;
+
+            var keyValue = {};
+            var formKey = void 0;
+            if (_lodash2.default.isArray(obj)) {
+                if (obj.length == 0) {
+                    keyValue[namespace] = '[]';
+                } else {
+                    obj.map(function (item, index) {
+                        if (_lodash2.default.isObject(item) && !(item instanceof File)) {
+                            (0, _assign2.default)(keyValue, _this2.objectToKeyValue(item, namespace + '[' + index + ']'));
+                        } else {
+                            keyValue[namespace + '[' + index + ']'] = item;
+                        }
+                    });
+                }
+            } else {
+                for (var property in obj) {
+                    if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                        if (namespace) {
+                            formKey = namespace + '[' + property + ']';
+                        } else {
+                            formKey = property;
+                        }
+
+                        if ((0, _typeof3.default)(obj[property]) === 'object' && !(obj[property] instanceof File)) {
+                            (0, _assign2.default)(keyValue, this.objectToKeyValue(obj[property], formKey));
+                        } else {
+                            keyValue[formKey] = obj[property];
+                        }
+                    }
+                }
+            }
+            return keyValue;
+        }
+    }, {
         key: 'objectToFormData',
         value: function objectToFormData(obj, form, namespace) {
-            var _this2 = this;
+            var _this3 = this;
 
             var fd = form || new FormData();
             var formKey = void 0;
             if (_lodash2.default.isArray(obj)) {
-                obj.map(function (item, index) {
-                    if (_lodash2.default.isObject(item) && !(item instanceof File)) {
-                        _this2.objectToFormData(item, fd, namespace + '[' + index + ']');
-                    } else {
-                        fd.append(namespace + '[]', item);
-                    }
-                });
+                if (obj.length == 0) {
+                    fd.append(namespace, '[]');
+                } else {
+                    obj.map(function (item, index) {
+                        if (_lodash2.default.isObject(item) && !(item instanceof File)) {
+                            _this3.objectToFormData(item, fd, namespace + '[' + index + ']');
+                        } else {
+                            fd.append(namespace + '[]', item);
+                        }
+                    });
+                }
             } else {
                 for (var property in obj) {
                     if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
-
                         if (namespace) {
                             formKey = namespace + '[' + property + ']';
                         } else {
@@ -389,6 +442,49 @@ var Tool = function () {
                 }
             }
             return fd;
+        }
+    }, {
+        key: 'keySort',
+        value: function keySort(data) {
+            var entries = (0, _entries2.default)(data);
+            entries.sort(function (a, b) {
+                return a[0] + '' > b[0] + '' ? 1 : -1;
+            });
+            return entries;
+        }
+    }, {
+        key: 'signStr',
+        value: function signStr(data) {
+            var signStr = '';
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = (0, _getIterator3.default)(data), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var _step$value = (0, _slicedToArray3.default)(_step.value, 2),
+                        key = _step$value[0],
+                        value = _step$value[1];
+
+                    signStr += signStr ? '&' : '';
+                    signStr += key + '=' + value;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            return signStr;
         }
     }]);
     return Tool;

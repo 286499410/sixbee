@@ -416,29 +416,73 @@ export default class Tool {
         return map[toString.call(obj)];
     }
 
-    objectToFormData(obj, form, namespace) {
-        let fd = form || new FormData();
+    objectToKeyValue(obj, namespace) {
+        let keyValue = {};
         let formKey;
         if (_.isArray(obj)) {
-            obj.map((item, index) => {
-                if (_.isObject(item) && !(item instanceof File)) {
-                    this.objectToFormData(item, fd, namespace + '[' + index + ']');
-                } else {
-                    // 若是数组则在关键字后面加上[]
-                    fd.append(namespace + '[]', item)
-                }
-            })
+            if (obj.length == 0) {
+                keyValue[namespace] = '[]';
+            } else {
+                obj.map((item, index) => {
+                    if (_.isObject(item) && !(item instanceof File)) {
+                        Object.assign(keyValue, this.objectToKeyValue(item, namespace + '[' + index + ']'));
+                    } else {
+                        // 若是数组则在关键字后面加上[]
+                        keyValue[namespace + '[' + index + ']'] = item;
+                    }
+                })
+            }
         } else {
             for (let property in obj) {
                 if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
-
                     if (namespace) {
                         // 若是对象，则这样
                         formKey = namespace + '[' + property + ']';
                     } else {
                         formKey = property;
                     }
+                    // if the property is an object, but not a File,
+                    // use recursivity.
+                    if (typeof obj[property] === 'object' && !(obj[property] instanceof File)) {
+                        // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
+                        Object.assign(keyValue, this.objectToKeyValue(obj[property], formKey));
+                    } else {
 
+                        // if it's a string or a File object
+                        keyValue[formKey] = obj[property];
+                    }
+
+                }
+            }
+        }
+        return keyValue;
+    }
+
+    objectToFormData(obj, form, namespace) {
+        let fd = form || new FormData();
+        let formKey;
+        if (_.isArray(obj)) {
+            if (obj.length == 0) {
+                fd.append(namespace, '[]');
+            } else {
+                obj.map((item, index) => {
+                    if (_.isObject(item) && !(item instanceof File)) {
+                        this.objectToFormData(item, fd, namespace + '[' + index + ']');
+                    } else {
+                        // 若是数组则在关键字后面加上[]
+                        fd.append(namespace + '[]', item)
+                    }
+                })
+            }
+        } else {
+            for (let property in obj) {
+                if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                    if (namespace) {
+                        // 若是对象，则这样
+                        formKey = namespace + '[' + property + ']';
+                    } else {
+                        formKey = property;
+                    }
                     // if the property is an object, but not a File,
                     // use recursivity.
                     if (typeof obj[property] === 'object' && !(obj[property] instanceof File)) {
@@ -454,6 +498,23 @@ export default class Tool {
             }
         }
         return fd;
-    };
+    }
+
+    keySort(data) {
+        let entries = Object.entries(data);
+        entries.sort((a, b) => {
+            return (a[0] + '') > (b[0] + '') ? 1 : -1;
+        });
+        return entries;
+    }
+
+    signStr(data) {
+        let signStr = '';
+        for (let [key, value] of data) {
+            signStr += signStr ? '&' : '';
+            signStr += key + '=' + value;
+        }
+        return signStr;
+    }
 
 }

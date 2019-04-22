@@ -1,13 +1,13 @@
 {
   "name": "sixbee",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "model & view",
   "author": "joey",
   "license": "ISC",
   "main": "dist/index.js",
   "scripts": {
     "compile": "babel -d dist/ src/ -w",
-    "prepublish": "npm run compile",
+    "prepublish": "babel -d dist/ src/",
     "server": "node app.babel.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -33,7 +33,8 @@
     "node-uuid": "^1.4.8",
     "prop-types": "^15.6.2",
     "pubsub-js": "^1.7.0",
-    "url-parse": "^1.4.4"
+    "url-parse": "^1.4.4",
+    "whatwg-fetch": "^3.0.0"
   },
   "peerDependencies": {
     "react": ">=16",

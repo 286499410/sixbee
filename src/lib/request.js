@@ -6,7 +6,8 @@ import PubSub from 'pubsub-js';
 
 let uuid = require('node-uuid');
 import tool from '../instance/tool';
-import "es6-promise";
+import "whatwg-fetch";
+
 export default class Request {
 
     contentType = {
@@ -18,13 +19,17 @@ export default class Request {
     };
 
     config = {
-        cross: true,           //是否跨域
+        cross: true,            //是否跨域
         root: '',               //根地址
         baseUrl: '',            //基地址
         documentRoot: '',       //文件基地址
         dataType: 'form',       //请求数据类型
         responseType: 'json',   //应答数据类型
         headers: {},
+    };
+
+    state = {
+        fetch: {}
     };
 
     constructor(config = {}) {
@@ -189,6 +194,13 @@ export default class Request {
     };
 
     fetch = (url, data, method, headers = this.config.headers, dataType = this.config.dataType) => {
+        this.state.fetch = {
+            url: url,
+            data: data,
+            method: method,
+            headers: headers,
+            dataType: dataType
+        };
         this.publishSync('beforeFetch', data);
         let fetchProps = {
             mode: this.getMode(),

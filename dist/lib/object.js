@@ -16,13 +16,13 @@ var _stringify = require('babel-runtime/core-js/json/stringify');
 
 var _stringify2 = _interopRequireDefault(_stringify);
 
-var _getOwnPropertyNames = require('babel-runtime/core-js/object/get-own-property-names');
-
-var _getOwnPropertyNames2 = _interopRequireDefault(_getOwnPropertyNames);
-
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
 var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -32,58 +32,7 @@ var object = function object() {
     (0, _classCallCheck3.default)(this, object);
 
     this.isEqual = function (a, b) {
-        if (a === b) {
-            return a !== 0 || 1 / a === 1 / b;
-        }
-
-        if (a == null || b == null) {
-            return a === b;
-        }
-
-        var classNameA = toString.call(a),
-            classNameB = toString.call(b);
-
-        if (classNameA !== classNameB) {
-            return false;
-        }
-
-        switch (classNameA) {
-            case '[object RegExp]':
-            case '[object String]':
-                return '' + a === '' + b;
-            case '[object Number]':
-                if (+a !== +a) {
-                    return +b !== +b;
-                }
-
-                return +a === 0 ? 1 / +a === 1 / b : +a === +b;
-            case '[object Date]':
-            case '[object Boolean]':
-                return +a === +b;
-        }
-
-        if (classNameA == '[object Object]') {
-            var propsA = (0, _getOwnPropertyNames2.default)(a),
-                propsB = (0, _getOwnPropertyNames2.default)(b);
-            if (propsA.length != propsB.length) {
-                return false;
-            }
-            for (var i = 0; i < propsA.length; i++) {
-                var propName = propsA[i];
-
-                if (a[propName] !== b[propName]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        if (classNameA == '[object Array]') {
-            if (a.toString() == b.toString()) {
-                return true;
-            }
-            return false;
-        }
+        return _lodash2.default.isEqual(a, b);
     };
 
     this.isEmpty = function (obj) {

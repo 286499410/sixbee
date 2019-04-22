@@ -223,10 +223,10 @@ export default class Validator {
                     valid = value.length == validate.extend;
                     break;
                 case 'min':
-                    valid = value.length < validate.extend;
+                    valid = value.length >= validate.extend;
                     break;
                 case 'max':
-                    valid = value.length > validate.extend;
+                    valid = value.length <= validate.extend;
                     break;
                 case 'email':
                     valid = lib('validate').isEmail(value);
@@ -278,6 +278,13 @@ export default class Validator {
                             return errorMsg;
                         }
                     }
+            }
+        } else if (validate.type.indexOf('check') == 0) {
+            if (lib('object').isFunction(this[validate.type])) {
+                let errorMsg = this[validate.type](value, validate.extend, data, key);
+                if (errorMsg !== true) {
+                    return errorMsg;
+                }
             }
         }
         if (!valid) {

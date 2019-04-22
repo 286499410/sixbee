@@ -104,7 +104,7 @@ var Connect = function (_Component) {
         key: 'render',
         value: function render() {
             var Component = this.props.component;
-            return _react2.default.createElement(Component, (0, _extends3.default)({ key: window.location.href }, (0, _extends3.default)({}, this.props, { models: this.models, data: this.state })));
+            return _react2.default.createElement(Component, (0, _extends3.default)({}, (0, _extends3.default)({}, this.props, { models: this.models, data: this.state }), { key: window.location.href }));
         }
     }]);
     return Connect;

@@ -36,7 +36,7 @@ var _tool = require('../instance/tool');
 
 var _tool2 = _interopRequireDefault(_tool);
 
-require('es6-promise');
+require('whatwg-fetch');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -63,6 +63,9 @@ var Request = function () {
             dataType: 'form',
             responseType: 'json',
             headers: {}
+        };
+        this.state = {
+            fetch: {}
         };
 
         this.unsubscribe = function () {
@@ -93,6 +96,13 @@ var Request = function () {
             var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : _this.config.headers;
             var dataType = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : _this.config.dataType;
 
+            _this.state.fetch = {
+                url: url,
+                data: data,
+                method: method,
+                headers: headers,
+                dataType: dataType
+            };
             _this.publishSync('beforeFetch', data);
             var fetchProps = {
                 mode: _this.getMode(),

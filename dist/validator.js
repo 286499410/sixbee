@@ -400,10 +400,10 @@ var _initialiseProps = function _initialiseProps() {
                     valid = value.length == validate.extend;
                     break;
                 case 'min':
-                    valid = value.length < validate.extend;
+                    valid = value.length >= validate.extend;
                     break;
                 case 'max':
-                    valid = value.length > validate.extend;
+                    valid = value.length <= validate.extend;
                     break;
                 case 'email':
                     valid = (0, _lib2.default)('validate').isEmail(value);
@@ -459,6 +459,13 @@ var _initialiseProps = function _initialiseProps() {
                             return errorMsg;
                         }
                     }
+            }
+        } else if (validate.type.indexOf('check') == 0) {
+            if ((0, _lib2.default)('object').isFunction(_this2[validate.type])) {
+                var _errorMsg = _this2[validate.type](value, validate.extend, data, key);
+                if (_errorMsg !== true) {
+                    return _errorMsg;
+                }
             }
         }
         if (!valid) {
