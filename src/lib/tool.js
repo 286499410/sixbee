@@ -416,16 +416,16 @@ export default class Tool {
         return map[toString.call(obj)];
     }
 
-    objectToKeyValue(obj, namespace) {
+    objectToKeyValue(obj, namespace, method) {
         let keyValue = {};
         let formKey;
         if (_.isArray(obj)) {
             if (obj.length == 0) {
-                keyValue[namespace] = '[]';
+                keyValue[namespace] = '';
             } else {
                 obj.map((item, index) => {
                     if (_.isObject(item) && !(item instanceof File)) {
-                        Object.assign(keyValue, this.objectToKeyValue(item, namespace + '[' + index + ']'));
+                        Object.assign(keyValue, this.objectToKeyValue(item, namespace + '[' + index + ']', method));
                     } else {
                         // 若是数组则在关键字后面加上[]
                         keyValue[namespace + '[' + index + ']'] = item;
@@ -434,7 +434,7 @@ export default class Tool {
             }
         } else {
             for (let property in obj) {
-                if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                if (obj.hasOwnProperty(property)) {
                     if (namespace) {
                         // 若是对象，则这样
                         formKey = namespace + '[' + property + ']';
@@ -443,10 +443,16 @@ export default class Tool {
                     }
                     // if the property is an object, but not a File,
                     // use recursivity.
-                    if (typeof obj[property] === 'object' && !(obj[property] instanceof File)) {
+                    if (typeof obj[property] === 'object' && obj[property] !== null && !(obj[property] instanceof File)) {
                         // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
-                        Object.assign(keyValue, this.objectToKeyValue(obj[property], formKey));
+                        Object.assign(keyValue, this.objectToKeyValue(obj[property], formKey, method));
                     } else {
+
+                        if((method || '').toUpperCase() === 'GET') {
+                            keyValue[formKey] = (obj[property] === undefined || obj[property] === null) ? '' : obj[property];
+                        } else if(obj[property] !== undefined) {
+                            keyValue[formKey] = (obj[property] === null) ? '' : obj[property];
+                        }
 
                         // if it's a string or a File object
                         keyValue[formKey] = obj[property];
@@ -463,7 +469,7 @@ export default class Tool {
         let formKey;
         if (_.isArray(obj)) {
             if (obj.length == 0) {
-                fd.append(namespace, '[]');
+                fd.append(namespace, '');
             } else {
                 obj.map((item, index) => {
                     if (_.isObject(item) && !(item instanceof File)) {
@@ -476,7 +482,7 @@ export default class Tool {
             }
         } else {
             for (let property in obj) {
-                if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                if (obj.hasOwnProperty(property)) {
                     if (namespace) {
                         // 若是对象，则这样
                         formKey = namespace + '[' + property + ']';
@@ -485,15 +491,13 @@ export default class Tool {
                     }
                     // if the property is an object, but not a File,
                     // use recursivity.
-                    if (typeof obj[property] === 'object' && !(obj[property] instanceof File)) {
+                    if (typeof obj[property] === 'object' && obj[property] !== null  && !(obj[property] instanceof File)) {
                         // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
                         this.objectToFormData(obj[property], fd, formKey);
                     } else {
-
+                        fd.append(formKey, (obj[property] === undefined || obj[property] === null) ? '' : obj[property]);
                         // if it's a string or a File object
-                        fd.append(formKey, obj[property]);
                     }
-
                 }
             }
         }

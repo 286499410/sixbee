@@ -64,7 +64,7 @@ var Connect = function (_Component) {
             if (model.subscribe) {
                 _this.subscribes.push(model.subscribe(function () {
                     if (_this._isMounted) {
-                        _this.setState(props.mapToProps.data(_this.props, _this.models) || {});
+                        _this.setState(_lodash2.default.cloneDeep(props.mapToProps.data(_this.props, _this.models) || {}));
                     }
                 }));
             }

@@ -19,7 +19,7 @@ class Connect extends Component {
             if(model.subscribe) {
                 this.subscribes.push(model.subscribe(() => {
                     if(this._isMounted) {
-                        this.setState(props.mapToProps.data(this.props, this.models) || {});
+                        this.setState(_.cloneDeep(props.mapToProps.data(this.props, this.models) || {}));
                     }
                 }));
             }

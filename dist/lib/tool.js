@@ -369,18 +369,18 @@ var Tool = function () {
         }
     }, {
         key: 'objectToKeyValue',
-        value: function objectToKeyValue(obj, namespace) {
+        value: function objectToKeyValue(obj, namespace, method) {
             var _this2 = this;
 
             var keyValue = {};
             var formKey = void 0;
             if (_lodash2.default.isArray(obj)) {
                 if (obj.length == 0) {
-                    keyValue[namespace] = '[]';
+                    keyValue[namespace] = '';
                 } else {
                     obj.map(function (item, index) {
                         if (_lodash2.default.isObject(item) && !(item instanceof File)) {
-                            (0, _assign2.default)(keyValue, _this2.objectToKeyValue(item, namespace + '[' + index + ']'));
+                            (0, _assign2.default)(keyValue, _this2.objectToKeyValue(item, namespace + '[' + index + ']', method));
                         } else {
                             keyValue[namespace + '[' + index + ']'] = item;
                         }
@@ -388,16 +388,23 @@ var Tool = function () {
                 }
             } else {
                 for (var property in obj) {
-                    if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                    if (obj.hasOwnProperty(property)) {
                         if (namespace) {
                             formKey = namespace + '[' + property + ']';
                         } else {
                             formKey = property;
                         }
 
-                        if ((0, _typeof3.default)(obj[property]) === 'object' && !(obj[property] instanceof File)) {
-                            (0, _assign2.default)(keyValue, this.objectToKeyValue(obj[property], formKey));
+                        if ((0, _typeof3.default)(obj[property]) === 'object' && obj[property] !== null && !(obj[property] instanceof File)) {
+                            (0, _assign2.default)(keyValue, this.objectToKeyValue(obj[property], formKey, method));
                         } else {
+
+                            if ((method || '').toUpperCase() === 'GET') {
+                                keyValue[formKey] = obj[property] === undefined || obj[property] === null ? '' : obj[property];
+                            } else if (obj[property] !== undefined) {
+                                keyValue[formKey] = obj[property] === null ? '' : obj[property];
+                            }
+
                             keyValue[formKey] = obj[property];
                         }
                     }
@@ -414,7 +421,7 @@ var Tool = function () {
             var formKey = void 0;
             if (_lodash2.default.isArray(obj)) {
                 if (obj.length == 0) {
-                    fd.append(namespace, '[]');
+                    fd.append(namespace, '');
                 } else {
                     obj.map(function (item, index) {
                         if (_lodash2.default.isObject(item) && !(item instanceof File)) {
@@ -426,17 +433,17 @@ var Tool = function () {
                 }
             } else {
                 for (var property in obj) {
-                    if (obj.hasOwnProperty(property) && obj[property] !== undefined && obj[property] !== null) {
+                    if (obj.hasOwnProperty(property)) {
                         if (namespace) {
                             formKey = namespace + '[' + property + ']';
                         } else {
                             formKey = property;
                         }
 
-                        if ((0, _typeof3.default)(obj[property]) === 'object' && !(obj[property] instanceof File)) {
+                        if ((0, _typeof3.default)(obj[property]) === 'object' && obj[property] !== null && !(obj[property] instanceof File)) {
                             this.objectToFormData(obj[property], fd, formKey);
                         } else {
-                            fd.append(formKey, obj[property]);
+                            fd.append(formKey, obj[property] === undefined || obj[property] === null ? '' : obj[property]);
                         }
                     }
                 }

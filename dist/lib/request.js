@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends2 = require('babel-runtime/helpers/extends');
+var _keys = require('babel-runtime/core-js/object/keys');
 
-var _extends3 = _interopRequireDefault(_extends2);
+var _keys2 = _interopRequireDefault(_keys);
 
 var _assign = require('babel-runtime/core-js/object/assign');
 
@@ -103,6 +103,9 @@ var Request = function () {
                 headers: headers,
                 dataType: dataType
             };
+            if (method === 'PUT') {
+                data._method = 'PUT';
+            }
             _this.publishSync('beforeFetch', data);
             var fetchProps = {
                 mode: _this.getMode(),
@@ -121,8 +124,13 @@ var Request = function () {
                     fetchProps.body = _this.getBody(data, dataType);
                     break;
                 case 'PUT':
-                    fetchProps.body = _this.getBody((0, _extends3.default)({}, data, { _method: 'PUT' }), dataType);
+                    fetchProps.body = _this.getBody(data, dataType);
                     fetchProps.method = 'POST';
+                    break;
+                case 'DELETE':
+                    if ((0, _keys2.default)(data).length > 0) {
+                        fetchProps.body = _tool2.default.objectToFormData(data);
+                    }
                     break;
             }
             var promise = fetch(url, fetchProps);
@@ -207,7 +215,8 @@ var Request = function () {
         }
     }, {
         key: 'post',
-        value: function post(url, data) {
+        value: function post(url) {
+            var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 
@@ -224,7 +233,8 @@ var Request = function () {
         }
     }, {
         key: 'put',
-        value: function put(url, data) {
+        value: function put(url) {
+            var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 

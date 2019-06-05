@@ -97,7 +97,7 @@ export default class Request {
      * @param dataType
      * @returns {Promise<Response>}
      */
-    post(url, data, headers = this.config.headers, dataType = this.config.dataType) {
+    post(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
         return this.fetch(this.config.baseUrl + url, data, 'POST', headers, dataType);
     }
 
@@ -121,7 +121,7 @@ export default class Request {
      * @param dataType
      * @returns {Promise<Response>}
      */
-    put(url, data, headers = this.config.headers, dataType = this.config.dataType) {
+    put(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
         return this.fetch(this.config.baseUrl + url, data, 'PUT', headers, dataType);
     }
 
@@ -201,6 +201,9 @@ export default class Request {
             headers: headers,
             dataType: dataType
         };
+        if(method === 'PUT') {
+            data._method = 'PUT';
+        }
         this.publishSync('beforeFetch', data);
         let fetchProps = {
             mode: this.getMode(),
@@ -219,8 +222,13 @@ export default class Request {
                 fetchProps.body = this.getBody(data, dataType);
                 break;
             case 'PUT':
-                fetchProps.body = this.getBody({...data, _method: 'PUT'}, dataType);
+                fetchProps.body = this.getBody(data, dataType);
                 fetchProps.method = 'POST';
+                break;
+            case 'DELETE':
+                if(Object.keys(data).length > 0) {
+                    fetchProps.body = tool.objectToFormData(data);
+                }
                 break;
         }
         let promise = fetch(url, fetchProps);
