@@ -24,6 +24,10 @@ var _validate = require('../instance/validate');
 
 var _validate2 = _interopRequireDefault(_validate);
 
+var _xlsx = require('../instance/xlsx');
+
+var _xlsx2 = _interopRequireDefault(_xlsx);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var libs = {
@@ -31,7 +35,8 @@ var libs = {
     storage: _storage2.default,
     tool: _tool2.default,
     object: _object2.default,
-    validate: _validate2.default
+    validate: _validate2.default,
+    xlsx: _xlsx2.default
 };
 
 exports.default = function (name) {

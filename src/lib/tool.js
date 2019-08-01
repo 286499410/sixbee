@@ -301,13 +301,23 @@ export default class Tool {
         }
     };
 
-    render = (field, value, data) => {
-        switch (field.type) {
+    render = (data, column, defaultValue = '') => {
+        let key = column.dataKey || column.key;
+        let value = _.get(data, key, defaultValue);
+        switch (column.type) {
+            case 'date':
+                return /^\d+$/.test(value) ? this.date(column.format || 'Y-m-d', value) : value;
+            case 'time':
+                return /^\d+$/.test(value) ? this.date(column.format || 'H:i', value) : value;
+            case 'datetime':
+                return /^\d+$/.test(value) ? this.date(column.format || 'Y-m-d H:i', value) : value;
+            case 'money':
+                return value == 0 && column.showZero !== true ? '' : this.parseMoney(value, column.float);
             case 'select':
             case 'radio':
-                if (_.isArray(field.dataSource)) {
-                    let dataSource = field.dataSource;
-                    let dataSourceConfig = field.dataSourceConfig || {text: 'text', value: 'value'};
+                if (_.isArray(column.dataSource)) {
+                    let dataSource = column.dataSource;
+                    let dataSourceConfig = column.dataSourceConfig || {text: 'text', value: 'value'};
                     let map = {};
                     dataSource.map((data) => {
                         map[data[dataSourceConfig.value]] = data[dataSourceConfig.text];
@@ -316,20 +326,31 @@ export default class Tool {
                 } else {
                     return value;
                 }
-            case 'date':
-                if (parseInt(value) > 100000) {
-                    return this.date('Y-m-d', value);
+            case 'checkbox':
+                if (column.multiple) {
+                    let dataSourceConfig = column.dataSourceConfig || {text: 'text', value: 'value'};
+                    let texts = [];
+                    if (_.isArray(value)) {
+                        value.map(row => {
+                            return texts.push(row[dataSourceConfig.text]);
+                        })
+                    }
+                    return texts.join(' ');
+                } else if (_.isArray(column.dataSource) && column.dataSource.length > 0) {
+
+                } else {
+                    return value ? '是' : '否';
+                }
+            case 'auto':
+                if (column.withKey) {
+                    let withData = _.get(data, column.withKey, {});
+                    let dataSourceConfig = column.dataSourceConfig || {text: 'text', value: 'value'};
+                    return this.replaceText(dataSourceConfig.text, withData);
                 } else {
                     return value;
                 }
-            case 'time':
-                return this.date('H:i', value);
-            case 'money':
-                return value == 0 ? '' : this.parseMoney(value);
-            case 'auto':
-                let withData = _.get(data, field.withKey, {});
-                let dataSourceConfig = field.dataSourceConfig || {text: 'text', value: 'value'};
-                return this.replaceText(dataSourceConfig.text, withData);
+            case 'editor':
+                return _.isString(value) ? value.replace(/<[^<>]+>/g, "") : '';
             default:
                 return value;
         }
@@ -448,9 +469,9 @@ export default class Tool {
                         Object.assign(keyValue, this.objectToKeyValue(obj[property], formKey, method));
                     } else {
 
-                        if((method || '').toUpperCase() === 'GET') {
+                        if ((method || '').toUpperCase() === 'GET') {
                             keyValue[formKey] = (obj[property] === undefined || obj[property] === null) ? '' : obj[property];
-                        } else if(obj[property] !== undefined) {
+                        } else if (obj[property] !== undefined) {
                             keyValue[formKey] = (obj[property] === null) ? '' : obj[property];
                         }
 
@@ -491,7 +512,7 @@ export default class Tool {
                     }
                     // if the property is an object, but not a File,
                     // use recursivity.
-                    if (typeof obj[property] === 'object' && obj[property] !== null  && !(obj[property] instanceof File)) {
+                    if (typeof obj[property] === 'object' && obj[property] !== null && !(obj[property] instanceof File)) {
                         // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
                         this.objectToFormData(obj[property], fd, formKey);
                     } else {

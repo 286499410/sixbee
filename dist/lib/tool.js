@@ -279,35 +279,59 @@ var Tool = function () {
             }
         };
 
-        this.render = function (field, value, data) {
-            switch (field.type) {
+        this.render = function (data, column) {
+            var defaultValue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+            var key = column.dataKey || column.key;
+            var value = _lodash2.default.get(data, key, defaultValue);
+            switch (column.type) {
+                case 'date':
+                    return (/^\d+$/.test(value) ? _this.date(column.format || 'Y-m-d', value) : value
+                    );
+                case 'time':
+                    return (/^\d+$/.test(value) ? _this.date(column.format || 'H:i', value) : value
+                    );
+                case 'datetime':
+                    return (/^\d+$/.test(value) ? _this.date(column.format || 'Y-m-d H:i', value) : value
+                    );
+                case 'money':
+                    return value == 0 && column.showZero !== true ? '' : _this.parseMoney(value, column.float);
                 case 'select':
                 case 'radio':
-                    if (_lodash2.default.isArray(field.dataSource)) {
-                        var dataSource = field.dataSource;
-                        var _dataSourceConfig = field.dataSourceConfig || { text: 'text', value: 'value' };
+                    if (_lodash2.default.isArray(column.dataSource)) {
+                        var dataSource = column.dataSource;
+                        var dataSourceConfig = column.dataSourceConfig || { text: 'text', value: 'value' };
                         var map = {};
                         dataSource.map(function (data) {
-                            map[data[_dataSourceConfig.value]] = data[_dataSourceConfig.text];
+                            map[data[dataSourceConfig.value]] = data[dataSourceConfig.text];
                         });
                         return map[value];
                     } else {
                         return value;
                     }
-                case 'date':
-                    if (parseInt(value) > 100000) {
-                        return _this.date('Y-m-d', value);
+                case 'checkbox':
+                    if (column.multiple) {
+                        var _dataSourceConfig = column.dataSourceConfig || { text: 'text', value: 'value' };
+                        var texts = [];
+                        if (_lodash2.default.isArray(value)) {
+                            value.map(function (row) {
+                                return texts.push(row[_dataSourceConfig.text]);
+                            });
+                        }
+                        return texts.join(' ');
+                    } else if (_lodash2.default.isArray(column.dataSource) && column.dataSource.length > 0) {} else {
+                        return value ? '是' : '否';
+                    }
+                case 'auto':
+                    if (column.withKey) {
+                        var withData = _lodash2.default.get(data, column.withKey, {});
+                        var _dataSourceConfig2 = column.dataSourceConfig || { text: 'text', value: 'value' };
+                        return _this.replaceText(_dataSourceConfig2.text, withData);
                     } else {
                         return value;
                     }
-                case 'time':
-                    return _this.date('H:i', value);
-                case 'money':
-                    return value == 0 ? '' : _this.parseMoney(value);
-                case 'auto':
-                    var withData = _lodash2.default.get(data, field.withKey, {});
-                    var dataSourceConfig = field.dataSourceConfig || { text: 'text', value: 'value' };
-                    return _this.replaceText(dataSourceConfig.text, withData);
+                case 'editor':
+                    return _lodash2.default.isString(value) ? value.replace(/<[^<>]+>/g, "") : '';
                 default:
                     return value;
             }
