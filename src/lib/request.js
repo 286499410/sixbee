@@ -72,6 +72,10 @@ export default class Request {
         return this;
     }
 
+    getHeader() {
+        return this.config.headers;
+    }
+
     /**
      * 设置报头
      * @param header
@@ -89,6 +93,10 @@ export default class Request {
         return this;
     }
 
+    getRequestUrl(url) {
+        return url.indexOf("http") == 0 ? url : this.config.baseUrl + url;
+    }
+
     /**
      * 发起一次post请求
      * @param url
@@ -98,7 +106,7 @@ export default class Request {
      * @returns {Promise<Response>}
      */
     post(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
-        return this.fetch(this.config.baseUrl + url, data, 'POST', headers, dataType);
+        return this.fetch(this.getRequestUrl(url), data, 'POST', headers, dataType);
     }
 
     /**
@@ -110,7 +118,7 @@ export default class Request {
      * @returns {Promise<Response>}
      */
     get(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
-        return this.fetch(this.config.baseUrl + url, data, 'GET', headers, dataType);
+        return this.fetch(this.getRequestUrl(url), data, 'GET', headers, dataType);
     }
 
     /**
@@ -122,7 +130,7 @@ export default class Request {
      * @returns {Promise<Response>}
      */
     put(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
-        return this.fetch(this.config.baseUrl + url, data, 'PUT', headers, dataType);
+        return this.fetch(this.getRequestUrl(url), data, 'PUT', headers, dataType);
     }
 
     /**
@@ -134,7 +142,7 @@ export default class Request {
      * @returns {Promise<Response>}
      */
     delete(url, data = {}, headers = this.config.headers, dataType = this.config.dataType) {
-        return this.fetch(this.config.baseUrl + url, data, 'DELETE', headers, dataType);
+        return this.fetch(this.getRequestUrl(url), data, 'DELETE', headers, dataType);
     }
 
     /**
@@ -201,7 +209,7 @@ export default class Request {
             headers: headers,
             dataType: dataType
         };
-        if(method === 'PUT') {
+        if (method === 'PUT') {
             data._method = 'PUT';
         }
         this.publishSync('beforeFetch', data);
@@ -226,7 +234,7 @@ export default class Request {
                 fetchProps.method = 'POST';
                 break;
             case 'DELETE':
-                if(Object.keys(data).length > 0) {
+                if (Object.keys(data).length > 0) {
                     fetchProps.body = tool.objectToFormData(data);
                 }
                 break;
@@ -247,6 +255,11 @@ export default class Request {
                     }
                 } catch (error) {
                     this.publish('catch', {
+                        url: url,
+                        data: data,
+                        method: method,
+                        headers: headers,
+                        dataType: dataType,
                         error: error,
                         res: res.clone()
                     });
@@ -256,6 +269,11 @@ export default class Request {
             }
         }).catch((error) => {
             this.publish('catch', {
+                url: url,
+                data: data,
+                method: method,
+                headers: headers,
+                dataType: dataType,
                 error: error
             });
         });

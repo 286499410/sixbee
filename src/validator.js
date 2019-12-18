@@ -317,6 +317,6 @@ export default class Validator {
     }
 
     isEmpty(value) {
-        return value === '' || value === undefined
+        return value === '' || value === undefined || value === null;
     }
 }

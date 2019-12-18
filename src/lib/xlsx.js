@@ -152,6 +152,13 @@ export default class xlsx {
         }
     }
 
+    getMoneyStyle = (column) => {
+        let float = parseInt((_.isFunction(column.float) ? column.float() : column.float) || 2);
+        return {
+            numFmt: '#,##0.'.padEnd(float + 6, '0'),
+        }
+    };
+
     export(data) {
         let fileName = data.filename + '_' + utils.date('Y-m-d');
         let sheets = [], sheetNames = [];
@@ -197,22 +204,64 @@ export default class xlsx {
             }
             row += line;
             sheet.data.map((data, i) => {
+                let groupRow = 1;
                 dataKeys.map((dataKey, j) => {
-                    let cellSymbol = this.getCellSymbol(row + i, j);
-                    cell[cellSymbol] = {
-                        v: this.getValue(dataKey, data),
-                        s: _.merge({}, this.style, this.tableStyle, {
-                            alignment: {
-                                horizontal: dataKey.textAlign || "left",
-                                vertical: "center"
-                            }
-                        }, (dataKey.type === 'money' ? this.moneyStyle : {})),
-                    };
-                    let extend = _.get(data, `extend.${dataKey.key}`);
-                    if (extend) {
-                        cell[cellSymbol] = _.merge({}, cell[cellSymbol], extend);
+                    if(dataKey.groupKey) {
+                        let groupData = (_.get(data, dataKey.groupKey) || []);
+                        groupRow = groupData.length;
                     }
                 });
+                dataKeys.map((dataKey, j) => {
+                    if(dataKey.groupKey) {
+                        let groupData = (_.get(data, dataKey.groupKey) || []);
+                        groupData.map((detail, k) => {
+                            let cellSymbol = this.getCellSymbol(row + i + k, j);
+                            cell[cellSymbol] = {
+                                v: this.getValue(dataKey, detail),
+                                s: _.merge({}, this.style, this.tableStyle, {
+                                    alignment: {
+                                        horizontal: dataKey.textAlign || "left",
+                                        vertical: "center"
+                                    }
+                                }, (dataKey.type === 'money' ? this.getMoneyStyle(dataKey) : {})),
+                            };
+                        });
+                    } else {
+                        let cellSymbol = this.getCellSymbol(row + i, j);
+                        cell[cellSymbol] = {
+                            v: this.getValue(dataKey, data),
+                            s: _.merge({}, this.style, this.tableStyle, {
+                                alignment: {
+                                    horizontal: dataKey.textAlign || "left",
+                                    vertical: "center"
+                                }
+                            }, (dataKey.type === 'money' ? this.getMoneyStyle(dataKey) : {})),
+                        };
+                        let extend = _.get(data, `extend.${dataKey.key}`);
+                        if (extend) {
+                            cell[cellSymbol] = _.merge({}, cell[cellSymbol], extend);
+                        }
+                        if(groupRow > 1) {
+                            //合并单元格
+                            merges.push({
+                                s: {c: j, r: row + i},
+                                e: {c: j, r: row + i + groupRow - 1}
+                            });
+                            for(let s = 1; s < groupRow; s++) {
+                                let cellSymbol = this.getCellSymbol(row + i + s, j);
+                                cell[cellSymbol] = {
+                                    s: _.merge({}, this.style, this.tableStyle, {
+                                        alignment: {
+                                            horizontal: dataKey.textAlign || "left",
+                                            vertical: "center"
+                                        }
+                                    }, (dataKey.type === 'money' ? this.getMoneyStyle(dataKey) : {})),
+                                };
+                            }
+                        }
+                    }
+                });
+                row += groupRow - 1;
             });
             row += sheet.data.length;
 

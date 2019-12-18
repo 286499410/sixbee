@@ -201,7 +201,7 @@ var Validator = function () {
     }, {
         key: 'isEmpty',
         value: function isEmpty(value) {
-            return value === '' || value === undefined;
+            return value === '' || value === undefined || value === null;
         }
     }]);
     return Validator;

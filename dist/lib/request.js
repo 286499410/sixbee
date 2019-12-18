@@ -149,6 +149,11 @@ var Request = function () {
                         }
                     } catch (error) {
                         _this.publish('catch', {
+                            url: url,
+                            data: data,
+                            method: method,
+                            headers: headers,
+                            dataType: dataType,
                             error: error,
                             res: res.clone()
                         });
@@ -158,6 +163,11 @@ var Request = function () {
                 }
             }).catch(function (error) {
                 _this.publish('catch', {
+                    url: url,
+                    data: data,
+                    method: method,
+                    headers: headers,
+                    dataType: dataType,
                     error: error
                 });
             });
@@ -202,6 +212,11 @@ var Request = function () {
             return this;
         }
     }, {
+        key: 'getHeader',
+        value: function getHeader() {
+            return this.config.headers;
+        }
+    }, {
         key: 'setHeader',
         value: function setHeader(header) {
             (0, _assign2.default)(this.config.headers, header);
@@ -214,13 +229,18 @@ var Request = function () {
             return this;
         }
     }, {
+        key: 'getRequestUrl',
+        value: function getRequestUrl(url) {
+            return url.indexOf("http") == 0 ? url : this.config.baseUrl + url;
+        }
+    }, {
         key: 'post',
         value: function post(url) {
             var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 
-            return this.fetch(this.config.baseUrl + url, data, 'POST', headers, dataType);
+            return this.fetch(this.getRequestUrl(url), data, 'POST', headers, dataType);
         }
     }, {
         key: 'get',
@@ -229,7 +249,7 @@ var Request = function () {
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 
-            return this.fetch(this.config.baseUrl + url, data, 'GET', headers, dataType);
+            return this.fetch(this.getRequestUrl(url), data, 'GET', headers, dataType);
         }
     }, {
         key: 'put',
@@ -238,7 +258,7 @@ var Request = function () {
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 
-            return this.fetch(this.config.baseUrl + url, data, 'PUT', headers, dataType);
+            return this.fetch(this.getRequestUrl(url), data, 'PUT', headers, dataType);
         }
     }, {
         key: 'delete',
@@ -247,7 +267,7 @@ var Request = function () {
             var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.config.headers;
             var dataType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.config.dataType;
 
-            return this.fetch(this.config.baseUrl + url, data, 'DELETE', headers, dataType);
+            return this.fetch(this.getRequestUrl(url), data, 'DELETE', headers, dataType);
         }
     }, {
         key: 'subscribe',

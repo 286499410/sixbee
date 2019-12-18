@@ -146,6 +146,7 @@ var Gateway = function (_Component2) {
                     }
                 }
             }
+
             if (props.switch) {
                 var Layout = this.getLayout(props.switch);
                 if (Layout) {
@@ -162,6 +163,15 @@ var Gateway = function (_Component2) {
                     var paths = void 0;
                     var match = {};
                     var query = {};
+
+                    if (props.route.titles) {
+                        if (props.route.titles[location.pathname]) {
+                            document.title = props.route.titles[location.pathname];
+                        } else if (props.route.titles['_default']) {
+                            document.title = props.route.titles['_default'];
+                        }
+                    }
+
                     pathname = pathname.replace(/\/*/, '');
                     pathname = pathname.replace(/\/*$/, '');
                     paths = pathname.split('/');

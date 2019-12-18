@@ -36,6 +36,10 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _object = require('../instance/object');
+
+var _object2 = _interopRequireDefault(_object);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var md5 = require('crypto-js/md5');
@@ -122,6 +126,7 @@ var Tool = function () {
         this.parseMoney = function (number) {
             var float = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
 
+            float = parseInt(float);
             if (number === undefined || number === null) {
                 return '';
             }
@@ -235,6 +240,7 @@ var Tool = function () {
         };
 
         this.toTree = function (data) {
+            data = _lodash2.default.cloneDeep(data);
             var tree = [];
             var dataHash = _this.hash(data, 'id');
             var childrenHash = _this.hash(data, 'parent_id', true);
@@ -295,7 +301,11 @@ var Tool = function () {
                     return (/^\d+$/.test(value) ? _this.date(column.format || 'Y-m-d H:i', value) : value
                     );
                 case 'money':
-                    return value == 0 && column.showZero !== true ? '' : _this.parseMoney(value, column.float);
+                    var float = column.float;
+                    if (_lodash2.default.isFunction(float)) {
+                        float = float();
+                    }
+                    return value == 0 && column.showZero !== true ? '' : _this.parseMoney(value, float);
                 case 'select':
                 case 'radio':
                     if (_lodash2.default.isArray(column.dataSource)) {
@@ -356,6 +366,13 @@ var Tool = function () {
             a = Math.round(a * 100);
             b = Math.round(b * 100);
             return eval(a + ' ' + op + ' ' + b) / 100;
+        };
+
+        this.numberCalc = function (a, op, b, float) {
+            a = Math.round(a);
+            b = Math.round(b);
+            var value = eval(a + ' ' + op + ' ' + b);
+            return float ? _this.round(value, float) : value;
         };
     }
 
@@ -467,7 +484,9 @@ var Tool = function () {
                         if ((0, _typeof3.default)(obj[property]) === 'object' && obj[property] !== null && !(obj[property] instanceof File)) {
                             this.objectToFormData(obj[property], fd, formKey);
                         } else {
-                            fd.append(formKey, obj[property] === undefined || obj[property] === null ? '' : obj[property]);
+                            if (obj[property] !== undefined) {
+                                fd.append(formKey, obj[property] === undefined || obj[property] === null ? '' : obj[property]);
+                            }
                         }
                     }
                 }
@@ -516,6 +535,20 @@ var Tool = function () {
             }
 
             return signStr;
+        }
+    }, {
+        key: 'isEmpty',
+        value: function isEmpty(value) {
+            return _object2.default.isEmpty(value);
+        }
+    }, {
+        key: 'count',
+        value: function count(data, key, float) {
+            var count = 0;
+            data.map(function (row) {
+                count += parseFloat(row[key] || 0);
+            });
+            return count == 0 ? '' : App.lib('tool').toFixed(count, float);
         }
     }]);
     return Tool;

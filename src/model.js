@@ -223,11 +223,11 @@ export default class Model {
             this.Curd.list(params).then((res) => {
                 if (res.list) {
                     let state = {list: res.list};
-                    if (res.page) state.page = res.page;
-                    if (res.rows) state.rows = res.rows;
-                    if (res.pages) state.pages = res.pages;
-                    if (params.limit) state.limit = params.limit;
-                    if (res.sums) state.sums = res.sums;
+                    if (res.page !== undefined) state.page = res.page;
+                    if (res.rows !== undefined) state.rows = res.rows;
+                    if (res.pages !== undefined) state.pages = res.pages;
+                    if (params.limit !== undefined) state.limit = params.limit;
+                    if (res.sums !== undefined) state.sums = res.sums;
                     if (autoUpdateState)
                         this.state(state);
                     resolve(res);
@@ -255,7 +255,7 @@ export default class Model {
         } else {
             return new Promise((resolve, reject) => {
                 if (!this._allPromise || refresh) {
-                    this._allPromise = this.list({limit: 1000}, false);
+                    this._allPromise = this.list({limit: 1000, ...params}, false);
                 }
                 this._allPromise.then((res) => {
                     if (res.list) {

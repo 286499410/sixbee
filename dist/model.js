@@ -266,11 +266,11 @@ var Model = function () {
                 _this7.Curd.list(params).then(function (res) {
                     if (res.list) {
                         var state = { list: res.list };
-                        if (res.page) state.page = res.page;
-                        if (res.rows) state.rows = res.rows;
-                        if (res.pages) state.pages = res.pages;
-                        if (params.limit) state.limit = params.limit;
-                        if (res.sums) state.sums = res.sums;
+                        if (res.page !== undefined) state.page = res.page;
+                        if (res.rows !== undefined) state.rows = res.rows;
+                        if (res.pages !== undefined) state.pages = res.pages;
+                        if (params.limit !== undefined) state.limit = params.limit;
+                        if (res.sums !== undefined) state.sums = res.sums;
                         if (autoUpdateState) _this7.state(state);
                         resolve(res);
                     } else if (res.errCode) {
@@ -297,7 +297,7 @@ var Model = function () {
             } else {
                 return new _promise2.default(function (resolve, reject) {
                     if (!_this8._allPromise || refresh) {
-                        _this8._allPromise = _this8.list({ limit: 1000 }, false);
+                        _this8._allPromise = _this8.list((0, _extends3.default)({ limit: 1000 }, params), false);
                     }
                     _this8._allPromise.then(function (res) {
                         if (res.list) {

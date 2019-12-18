@@ -3,6 +3,7 @@
  */
 
 import _ from 'lodash';
+import object from '../instance/object';
 
 let md5 = require('crypto-js/md5');
 let uuid = require('node-uuid');
@@ -114,6 +115,7 @@ export default class Tool {
      * @returns {*}
      */
     parseMoney = (number, float = 2) => {
+        float = parseInt(float);
         if (number === undefined || number === null) {
             return '';
         }
@@ -257,6 +259,7 @@ export default class Tool {
     };
 
     toTree = (data) => {
+        data = _.cloneDeep(data);
         let tree = [];
         let dataHash = this.hash(data, 'id');
         let childrenHash = this.hash(data, 'parent_id', true);
@@ -312,7 +315,11 @@ export default class Tool {
             case 'datetime':
                 return /^\d+$/.test(value) ? this.date(column.format || 'Y-m-d H:i', value) : value;
             case 'money':
-                return value == 0 && column.showZero !== true ? '' : this.parseMoney(value, column.float);
+                let float = column.float;
+                if(_.isFunction(float)) {
+                    float = float();
+                }
+                return value == 0 && column.showZero !== true ? '' : this.parseMoney(value, float);
             case 'select':
             case 'radio':
                 if (_.isArray(column.dataSource)) {
@@ -394,6 +401,21 @@ export default class Tool {
         a = Math.round(a * 100);
         b = Math.round(b * 100);
         return eval(`${a} ${op} ${b}`) / 100;
+    };
+
+    /**
+     * 数值计算
+     * @param a
+     * @param op
+     * @param b
+     * @param float
+     * @returns {number}
+     */
+    numberCalc = (a, op, b, float) => {
+        a = Math.round(a);
+        b = Math.round(b);
+        let value = eval(`${a} ${op} ${b}`);
+        return float ? this.round(value, float) : value;
     };
 
     /**
@@ -516,7 +538,9 @@ export default class Tool {
                         // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
                         this.objectToFormData(obj[property], fd, formKey);
                     } else {
-                        fd.append(formKey, (obj[property] === undefined || obj[property] === null) ? '' : obj[property]);
+                        if(obj[property] !== undefined) {
+                            fd.append(formKey, (obj[property] === undefined || obj[property] === null) ? '' : obj[property]);
+                        }
                         // if it's a string or a File object
                     }
                 }
@@ -540,6 +564,24 @@ export default class Tool {
             signStr += key + '=' + value;
         }
         return signStr;
+    }
+
+    isEmpty(value) {
+        return object.isEmpty(value);
+    }
+
+    /**
+     * 合计
+     * @param data
+     * @param key
+     * @returns {number}
+     */
+    count(data, key, float) {
+        let count = 0;
+        data.map(row => {
+            count += parseFloat(row[key] || 0);
+        });
+        return count == 0 ? '' : App.lib('tool').toFixed(count, float);
     }
 
 }

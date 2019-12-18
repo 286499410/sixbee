@@ -73,6 +73,13 @@ var xlsx = function () {
                 right: { style: 'thin', color: "FF000000" }
             }
         };
+
+        this.getMoneyStyle = function (column) {
+            var float = parseInt((_lodash2.default.isFunction(column.float) ? column.float() : column.float) || 2);
+            return {
+                numFmt: '#,##0.'.padEnd(float + 6, '0')
+            };
+        };
     }
 
     (0, _createClass3.default)(xlsx, [{
@@ -240,22 +247,63 @@ var xlsx = function () {
                 }
                 row += line;
                 sheet.data.map(function (data, i) {
+                    var groupRow = 1;
                     dataKeys.map(function (dataKey, j) {
-                        var cellSymbol = _this2.getCellSymbol(row + i, j);
-                        cell[cellSymbol] = {
-                            v: _this2.getValue(dataKey, data),
-                            s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
-                                alignment: {
-                                    horizontal: dataKey.textAlign || "left",
-                                    vertical: "center"
-                                }
-                            }, dataKey.type === 'money' ? _this2.moneyStyle : {})
-                        };
-                        var extend = _lodash2.default.get(data, 'extend.' + dataKey.key);
-                        if (extend) {
-                            cell[cellSymbol] = _lodash2.default.merge({}, cell[cellSymbol], extend);
+                        if (dataKey.groupKey) {
+                            var groupData = _lodash2.default.get(data, dataKey.groupKey) || [];
+                            groupRow = groupData.length;
                         }
                     });
+                    dataKeys.map(function (dataKey, j) {
+                        if (dataKey.groupKey) {
+                            var groupData = _lodash2.default.get(data, dataKey.groupKey) || [];
+                            groupData.map(function (detail, k) {
+                                var cellSymbol = _this2.getCellSymbol(row + i + k, j);
+                                cell[cellSymbol] = {
+                                    v: _this2.getValue(dataKey, detail),
+                                    s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                        alignment: {
+                                            horizontal: dataKey.textAlign || "left",
+                                            vertical: "center"
+                                        }
+                                    }, dataKey.type === 'money' ? _this2.getMoneyStyle(dataKey) : {})
+                                };
+                            });
+                        } else {
+                            var cellSymbol = _this2.getCellSymbol(row + i, j);
+                            cell[cellSymbol] = {
+                                v: _this2.getValue(dataKey, data),
+                                s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                    alignment: {
+                                        horizontal: dataKey.textAlign || "left",
+                                        vertical: "center"
+                                    }
+                                }, dataKey.type === 'money' ? _this2.getMoneyStyle(dataKey) : {})
+                            };
+                            var extend = _lodash2.default.get(data, 'extend.' + dataKey.key);
+                            if (extend) {
+                                cell[cellSymbol] = _lodash2.default.merge({}, cell[cellSymbol], extend);
+                            }
+                            if (groupRow > 1) {
+                                merges.push({
+                                    s: { c: j, r: row + i },
+                                    e: { c: j, r: row + i + groupRow - 1 }
+                                });
+                                for (var s = 1; s < groupRow; s++) {
+                                    var _cellSymbol = _this2.getCellSymbol(row + i + s, j);
+                                    cell[_cellSymbol] = {
+                                        s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                            alignment: {
+                                                horizontal: dataKey.textAlign || "left",
+                                                vertical: "center"
+                                            }
+                                        }, dataKey.type === 'money' ? _this2.getMoneyStyle(dataKey) : {})
+                                    };
+                                }
+                            }
+                        }
+                    });
+                    row += groupRow - 1;
                 });
                 row += sheet.data.length;
 

@@ -63,6 +63,7 @@ class Gateway extends Component {
                 }
             }
         }
+
         if (props.switch) {
             //自定义的路由匹配
             let Layout = this.getLayout(props.switch);
@@ -79,6 +80,15 @@ class Gateway extends Component {
                 let paths;
                 let match = {};
                 let query = {};
+
+                if (props.route.titles) {
+                    if (props.route.titles[location.pathname]) {
+                        document.title = props.route.titles[location.pathname];
+                    } else if (props.route.titles['_default']) {
+                        document.title = props.route.titles['_default'];
+                    }
+                }
+
                 pathname = pathname.replace(/\/*/, '');
                 pathname = pathname.replace(/\/*$/, '');
                 paths = pathname.split('/');
