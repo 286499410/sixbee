@@ -30,7 +30,8 @@ export default class Validator {
         '>=': '[label]必须大于等于[extend]',
         '<': '[label]必须小于[extend]',
         '<=': '[label]必须小于等于[extend]',
-        '==': '[label]不等于[extend]',
+        '==': '[label]必须等于[extend]',
+        '!=': '[label]不能等于[extend]',
         'regex': '[label]正则匹配错误'
     };
 
@@ -169,15 +170,17 @@ export default class Validator {
         let rule = this.parseRule(this.rule);
         this.errorMsg = {};
         keys.map((key) => {
+            let dataKey = key;
             if (_.isObject(key)) {
                 if (key.isCheck && !key.isCheck(data)) {
                     return;
                 }
+                dataKey = key.dataKey || key.key;
                 key = key.key;
             }
             let validates = rule[key] ? rule[key].validates : [];
             let label = rule[key] ? rule[key].label : '';
-            let ret = this.validates(data, key, validates, label);
+            let ret = this.validates(data, dataKey, validates, label);
             if (ret !== true) {
                 this.setErrorMsg(key, ret);
                 flag = false;
@@ -269,6 +272,7 @@ export default class Validator {
                 case '<':
                 case '<=':
                 case '==':
+                case '!=':
                     valid = eval(value + validate.type + validate.extend);
                     break;
                 default:

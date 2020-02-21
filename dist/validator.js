@@ -4,14 +4,6 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
-
-var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-
 var _entries = require('babel-runtime/core-js/object/entries');
 
 var _entries2 = _interopRequireDefault(_entries);
@@ -19,6 +11,14 @@ var _entries2 = _interopRequireDefault(_entries);
 var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
+
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
 
 var _extends2 = require('babel-runtime/helpers/extends');
 
@@ -108,51 +108,55 @@ var Validator = function () {
                 return this[_state].rule;
             }
             var rule = {};
+
+            var _loop = function _loop(key, value) {
+                var _key$split = key.split('|'),
+                    _key$split2 = (0, _slicedToArray3.default)(_key$split, 2),
+                    name = _key$split2[0],
+                    label = _key$split2[1];
+
+                rule[name] = {
+                    label: label || _this.label[name] || name,
+                    validates: []
+                };
+                var values = void 0;
+                if ((0, _lib2.default)('object').isArray(value)) {
+                    values = value;
+                } else {
+                    values = value.split('|');
+                }
+                values.map(function (value) {
+                    var type = void 0,
+                        extend = void 0;
+                    if ((0, _lib2.default)('object').isObject(value)) {
+                        type = (0, _keys2.default)(value)[0];
+                        extend = value[type];
+                    } else {
+                        var _value$split = value.split(':');
+
+                        var _value$split2 = (0, _slicedToArray3.default)(_value$split, 2);
+
+                        type = _value$split2[0];
+                        extend = _value$split2[1];
+                    }
+                    rule[name].validates.push({ type: type, extend: extend });
+                });
+            };
+
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
             var _iteratorError = undefined;
 
             try {
-                var _loop = function _loop() {
-                    var _step$value = (0, _slicedToArray3.default)(_step.value, 2),
-                        key = _step$value[0],
-                        value = _step$value[1];
-
-                    var _key$split = key.split('|'),
-                        _key$split2 = (0, _slicedToArray3.default)(_key$split, 2),
-                        name = _key$split2[0],
-                        label = _key$split2[1];
-
-                    rule[name] = {
-                        label: label || _this.label[name] || name,
-                        validates: []
-                    };
-                    var values = void 0;
-                    if ((0, _lib2.default)('object').isArray(value)) {
-                        values = value;
-                    } else {
-                        values = value.split('|');
-                    }
-                    values.map(function (value) {
-                        var type = void 0,
-                            extend = void 0;
-                        if ((0, _lib2.default)('object').isObject(value)) {
-                            type = (0, _keys2.default)(value)[0];
-                            extend = value[type];
-                        } else {
-                            var _value$split = value.split(':');
-
-                            var _value$split2 = (0, _slicedToArray3.default)(_value$split, 2);
-
-                            type = _value$split2[0];
-                            extend = _value$split2[1];
-                        }
-                        rule[name].validates.push({ type: type, extend: extend });
-                    });
-                };
-
                 for (var _iterator = (0, _getIterator3.default)((0, _entries2.default)(config)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    _loop();
+                    var _ref = _step.value;
+
+                    var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
+
+                    var key = _ref2[0];
+                    var value = _ref2[1];
+
+                    _loop(key, value);
                 }
             } catch (err) {
                 _didIteratorError = true;
@@ -231,7 +235,8 @@ var _initialiseProps = function _initialiseProps() {
         '>=': '[label]必须大于等于[extend]',
         '<': '[label]必须小于[extend]',
         '<=': '[label]必须小于等于[extend]',
-        '==': '[label]不等于[extend]',
+        '==': '[label]必须等于[extend]',
+        '!=': '[label]不能等于[extend]',
         'regex': '[label]正则匹配错误'
     };
 
@@ -240,24 +245,28 @@ var _initialiseProps = function _initialiseProps() {
             return _this2[_state].message;
         }
         var message = {};
+
+        var _loop2 = function _loop2(key, value) {
+            var keys = key.split('|');
+            keys.map(function (k) {
+                message[k] = value;
+            });
+        };
+
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
         var _iteratorError2 = undefined;
 
         try {
-            var _loop2 = function _loop2() {
-                var _step2$value = (0, _slicedToArray3.default)(_step2.value, 2),
-                    key = _step2$value[0],
-                    value = _step2$value[1];
-
-                var keys = key.split('|');
-                keys.map(function (k) {
-                    message[k] = value;
-                });
-            };
-
             for (var _iterator2 = (0, _getIterator3.default)((0, _entries2.default)(config)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                _loop2();
+                var _ref3 = _step2.value;
+
+                var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
+
+                var key = _ref4[0];
+                var value = _ref4[1];
+
+                _loop2(key, value);
             }
         } catch (err) {
             _didIteratorError2 = true;
@@ -283,24 +292,28 @@ var _initialiseProps = function _initialiseProps() {
             return _this2[_state].scene;
         }
         var scene = {};
+
+        var _loop3 = function _loop3(key, value) {
+            var keys = key.split('|');
+            keys.map(function (k) {
+                scene[k] = value;
+            });
+        };
+
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;
         var _iteratorError3 = undefined;
 
         try {
-            var _loop3 = function _loop3() {
-                var _step3$value = (0, _slicedToArray3.default)(_step3.value, 2),
-                    key = _step3$value[0],
-                    value = _step3$value[1];
-
-                var keys = key.split('|');
-                keys.map(function (k) {
-                    scene[k] = value;
-                });
-            };
-
             for (var _iterator3 = (0, _getIterator3.default)((0, _entries2.default)(config)), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                _loop3();
+                var _ref5 = _step3.value;
+
+                var _ref6 = (0, _slicedToArray3.default)(_ref5, 2);
+
+                var key = _ref6[0];
+                var value = _ref6[1];
+
+                _loop3(key, value);
             }
         } catch (err) {
             _didIteratorError3 = true;
@@ -339,15 +352,17 @@ var _initialiseProps = function _initialiseProps() {
         var rule = _this2.parseRule(_this2.rule);
         _this2.errorMsg = {};
         keys.map(function (key) {
+            var dataKey = key;
             if (_lodash2.default.isObject(key)) {
                 if (key.isCheck && !key.isCheck(data)) {
                     return;
                 }
+                dataKey = key.dataKey || key.key;
                 key = key.key;
             }
             var validates = rule[key] ? rule[key].validates : [];
             var label = rule[key] ? rule[key].label : '';
-            var ret = _this2.validates(data, key, validates, label);
+            var ret = _this2.validates(data, dataKey, validates, label);
             if (ret !== true) {
                 _this2.setErrorMsg(key, ret);
                 flag = false;
@@ -450,6 +465,7 @@ var _initialiseProps = function _initialiseProps() {
                 case '<':
                 case '<=':
                 case '==':
+                case '!=':
                     valid = eval(value + validate.type + validate.extend);
                     break;
                 default:

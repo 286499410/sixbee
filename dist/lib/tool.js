@@ -512,9 +512,12 @@ var Tool = function () {
 
             try {
                 for (var _iterator = (0, _getIterator3.default)(data), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var _step$value = (0, _slicedToArray3.default)(_step.value, 2),
-                        key = _step$value[0],
-                        value = _step$value[1];
+                    var _ref = _step.value;
+
+                    var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
+
+                    var key = _ref2[0];
+                    var value = _ref2[1];
 
                     signStr += signStr ? '&' : '';
                     signStr += key + '=' + value;
@@ -546,7 +549,7 @@ var Tool = function () {
         value: function count(data, key, float) {
             var count = 0;
             data.map(function (row) {
-                count += parseFloat(row[key] || 0);
+                count += parseFloat(_lodash2.default.get(row, key) || 0);
             });
             return count == 0 ? '' : App.lib('tool').toFixed(count, float);
         }

@@ -246,10 +246,12 @@ var Model = function () {
     }, {
         key: 'list',
         value: function list() {
+            var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
             var _this7 = this;
 
-            var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
             var autoUpdateState = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+            var hasFilter = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
             params = _lodash2.default.merge({
                 field: this._state.field,
@@ -257,7 +259,7 @@ var Model = function () {
                 limit: this._state.limit,
                 order: this._state.order,
                 with: this._state.with,
-                cond: _lodash2.default.merge({}, this._state.cond, this.filterToCond())
+                cond: _lodash2.default.merge({}, this._state.cond, hasFilter ? this.filterToCond() : {})
             }, params);
             if (this._state.sum) {
                 params.sum = this._state.sum;
@@ -297,7 +299,7 @@ var Model = function () {
             } else {
                 return new _promise2.default(function (resolve, reject) {
                     if (!_this8._allPromise || refresh) {
-                        _this8._allPromise = _this8.list((0, _extends3.default)({ limit: 1000 }, params), false);
+                        _this8._allPromise = _this8.list((0, _extends3.default)({ limit: 1000 }, params), false, false);
                     }
                     _this8._allPromise.then(function (res) {
                         if (res.list) {
@@ -395,9 +397,12 @@ var Model = function () {
 
             try {
                 for (var _iterator = (0, _getIterator3.default)((0, _entries2.default)(filterData)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var _step$value = (0, _slicedToArray3.default)(_step.value, 2),
-                        key = _step$value[0],
-                        value = _step$value[1];
+                    var _ref = _step.value;
+
+                    var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
+
+                    var key = _ref2[0];
+                    var value = _ref2[1];
 
                     var field = this._fields[key] || {};
                     if (field.filterCondKey === false) {

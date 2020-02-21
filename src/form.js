@@ -90,11 +90,12 @@ export default class Form {
      * @param scene
      * @returns {undefined|Array}
      */
-    getScene(scene) {
-        for (let key in this.scene) {
+    getScene(scene = this._state.scene) {
+        console.log(scene, 'teststes');
+        for (let key in this._scene) {
             let keys = key.split('|');
             if (keys.indexOf(scene) >= 0) {
-                return this.scene[key];
+                return this._scene[key];
             }
         }
         return undefined;

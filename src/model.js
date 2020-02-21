@@ -207,14 +207,14 @@ export default class Model {
      * @param params
      * @returns {Promise<any>}
      */
-    list(params = {}, autoUpdateState = true) {
+    list(params = {}, autoUpdateState = true, hasFilter = true) {
         params = _.merge({
             field: this._state.field,
             page: this._state.page,
             limit: this._state.limit,
             order: this._state.order,
             with: this._state.with,
-            cond: _.merge({}, this._state.cond, this.filterToCond())
+            cond: _.merge({}, this._state.cond, hasFilter ? this.filterToCond() : {})
         }, params);
         if (this._state.sum) {
             params.sum = this._state.sum
@@ -255,7 +255,7 @@ export default class Model {
         } else {
             return new Promise((resolve, reject) => {
                 if (!this._allPromise || refresh) {
-                    this._allPromise = this.list({limit: 1000, ...params}, false);
+                    this._allPromise = this.list({limit: 1000, ...params}, false, false);
                 }
                 this._allPromise.then((res) => {
                     if (res.list) {

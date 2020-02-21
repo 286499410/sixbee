@@ -579,7 +579,7 @@ export default class Tool {
     count(data, key, float) {
         let count = 0;
         data.map(row => {
-            count += parseFloat(row[key] || 0);
+            count += parseFloat(_.get(row, key) || 0);
         });
         return count == 0 ? '' : App.lib('tool').toFixed(count, float);
     }

@@ -1,6 +1,6 @@
 {
   "name": "sixbee",
-  "version": "1.0.11",
+  "version": "1.0.30",
   "description": "model & view",
   "author": "joey",
   "license": "ISC",
@@ -20,7 +20,7 @@
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "lodash": "^4.17.11",
