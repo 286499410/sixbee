@@ -89,7 +89,6 @@ var Form = function () {
         value: function getScene() {
             var scene = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._state.scene;
 
-            console.log(scene, 'teststes');
             for (var key in this._scene) {
                 var keys = key.split('|');
                 if (keys.indexOf(scene) >= 0) {

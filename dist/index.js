@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.connect = exports.Router = exports.Provider = exports.Form = exports.Model = undefined;
+exports.object = exports.request = exports.storage = exports.tool = exports.connect = exports.Router = exports.Provider = exports.Form = exports.Model = undefined;
 
 var _index = require('./lib/index');
 
@@ -146,9 +146,17 @@ var sixbee = {
         return sixbee.cache.middleware[name];
     }
 };
+var tool = sixbee.lib('tool');
+var storage = sixbee.lib('storage');
+var request = sixbee.lib('request');
+var object = sixbee.lib('object');
 exports.Model = _model2.default;
 exports.Form = _form2.default;
 exports.Provider = _provider2.default;
 exports.Router = _router2.default;
 exports.connect = _connect2.default;
+exports.tool = tool;
+exports.storage = storage;
+exports.request = request;
+exports.object = object;
 exports.default = sixbee;

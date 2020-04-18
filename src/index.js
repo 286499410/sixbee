@@ -112,11 +112,19 @@ let sixbee = {
         return sixbee.cache.middleware[name];
     },
 };
+const tool = sixbee.lib('tool');
+const storage = sixbee.lib('storage');
+const request = sixbee.lib('request');
+const object = sixbee.lib('object');
 export {
     Model,
     Form,
     Provider,
     Router,
-    connect
+    connect,
+    tool,
+    storage,
+    request,
+    object
 }
 export default sixbee;

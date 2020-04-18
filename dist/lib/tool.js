@@ -20,6 +20,10 @@ var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
 
+var _extends2 = require('babel-runtime/helpers/extends');
+
+var _extends3 = _interopRequireDefault(_extends2);
+
 var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
 
 var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
@@ -374,6 +378,30 @@ var Tool = function () {
             var value = eval(a + ' ' + op + ' ' + b);
             return float ? _this.round(value, float) : value;
         };
+
+        this.count = function (data, key, float) {
+            var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'money';
+
+            var count = 0;
+            data.map(function (row) {
+                count += parseFloat(_lodash2.default.get(row, key) || 0);
+            });
+            return count == 0 ? '' : type === 'money' ? _this.parseMoney(count, float) : _this.toFixed(count, float);
+        };
+
+        this.treeToList = function (dataSource) {
+            var list = [];
+            dataSource.map(function (data) {
+                var current = data;
+                var children = [];
+                if (data.children && data.children.length > 0) {
+                    children = _this.treeToList(data.children);
+                }
+                list.push((0, _extends3.default)({}, current));
+                list = list.concat(children);
+            });
+            return list;
+        };
     }
 
     (0, _createClass3.default)(Tool, [{
@@ -543,15 +571,6 @@ var Tool = function () {
         key: 'isEmpty',
         value: function isEmpty(value) {
             return _object2.default.isEmpty(value);
-        }
-    }, {
-        key: 'count',
-        value: function count(data, key, float) {
-            var count = 0;
-            data.map(function (row) {
-                count += parseFloat(_lodash2.default.get(row, key) || 0);
-            });
-            return count == 0 ? '' : App.lib('tool').toFixed(count, float);
         }
     }]);
     return Tool;

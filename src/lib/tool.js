@@ -316,7 +316,7 @@ export default class Tool {
                 return /^\d+$/.test(value) ? this.date(column.format || 'Y-m-d H:i', value) : value;
             case 'money':
                 let float = column.float;
-                if(_.isFunction(float)) {
+                if (_.isFunction(float)) {
                     float = float();
                 }
                 return value == 0 && column.showZero !== true ? '' : this.parseMoney(value, float);
@@ -538,7 +538,7 @@ export default class Tool {
                         // 此处将formKey递归下去很重要，因为数据结构会出现嵌套的情况
                         this.objectToFormData(obj[property], fd, formKey);
                     } else {
-                        if(obj[property] !== undefined) {
+                        if (obj[property] !== undefined) {
                             fd.append(formKey, (obj[property] === undefined || obj[property] === null) ? '' : obj[property]);
                         }
                         // if it's a string or a File object
@@ -574,14 +574,35 @@ export default class Tool {
      * 合计
      * @param data
      * @param key
-     * @returns {number}
+     * @param float
+     * @param type = money | number
+     * @returns {string}
      */
-    count(data, key, float) {
+    count = (data, key, float, type = 'money') => {
         let count = 0;
         data.map(row => {
             count += parseFloat(_.get(row, key) || 0);
         });
-        return count == 0 ? '' : App.lib('tool').toFixed(count, float);
-    }
+        return count == 0 ? '' : (type === 'money' ? this.parseMoney(count, float) : this.toFixed(count, float));
+    };
+
+    /**
+     * 树形转列表
+     * @param dataSource
+     * @returns {Array}
+     */
+    treeToList = (dataSource) => {
+        let list = [];
+        dataSource.map((data) => {
+            let current = data;
+            let children = [];
+            if (data.children && data.children.length > 0) {
+                children = this.treeToList(data.children);
+            }
+            list.push({...current});
+            list = list.concat(children);
+        });
+        return list;
+    };
 
 }
