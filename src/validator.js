@@ -46,14 +46,9 @@ export default class Validator {
     }
 
     config(config) {
-        if (config.rule)
-            this.rule = config.rule;
-        if (config.message)
-            this.message = config.message;
-        if (config.scene)
-            this.scene = config.scene;
-        if (config.label)
-            this.label = config.label;
+        for(let [key, value] of Object.entries(config)) {
+            this[key] = value;
+        }
     }
 
     setState(state) {

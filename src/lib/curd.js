@@ -32,6 +32,10 @@ export default class Curd {
         }
     };
 
+    config = {
+        headers: {}
+    };
+
     constructor(key) {
         this.uri = '/' + key.replace('.', '/');
         Object.keys(this.api).map((key) => {
@@ -39,9 +43,31 @@ export default class Curd {
         });
     }
 
+    /**
+     * 设置配置数据
+     * @param config
+     */
+    setConfig(config) {
+        Object.assign(this.config, config);
+        return this;
+    }
+
+    getHeader() {
+        return this.config.headers;
+    }
+
+    /**
+     * 设置报头
+     * @param header
+     */
+    setHeader(header) {
+        Object.assign(this.config.headers, header);
+        return this;
+    }
+
     create(data) {
         return new Promise((resolve, reject) => {
-            request[this.api.create.method](this.api.create.uri, data).then((res) => {
+            request[this.api.create.method](this.api.create.uri, data, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);
@@ -55,7 +81,7 @@ export default class Curd {
 
     read(id, params) {
         return new Promise((resolve, reject) => {
-            request[this.api.read.method](this.api.read.uri + '/' + id, params).then((res) => {
+            request[this.api.read.method](this.api.read.uri + '/' + id, params, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);
@@ -69,7 +95,7 @@ export default class Curd {
 
     single(params) {
         return new Promise((resolve, reject) => {
-            request[this.api.single.method](this.api.single.uri, params).then((res) => {
+            request[this.api.single.method](this.api.single.uri, params, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);
@@ -83,7 +109,7 @@ export default class Curd {
 
     update(id, data) {
         return new Promise((resolve, reject) => {
-            request[this.api.update.method](this.api.update.uri + '/' + id, data).then((res) => {
+            request[this.api.update.method](this.api.update.uri + '/' + id, data, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);
@@ -100,7 +126,7 @@ export default class Curd {
             ids = ids.join(',');
         }
         return new Promise((resolve, reject) => {
-            request[this.api.delete.method](this.api.delete.uri + '/' + ids, {}).then((res) => {
+            request[this.api.delete.method](this.api.delete.uri + '/' + ids, {}, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);
@@ -114,7 +140,7 @@ export default class Curd {
 
     list(params) {
         return new Promise((resolve, reject) => {
-            request[this.api.list.method](this.api.list.uri, params).then((res) => {
+            request[this.api.list.method](this.api.list.uri, params, {...request.getHeader(), ...this.getHeader()}).then((res) => {
                 if (res.ok) {
                     res.json().then((json) => {
                         resolve(json);

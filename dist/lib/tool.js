@@ -402,6 +402,14 @@ var Tool = function () {
             });
             return list;
         };
+
+        this.removeArrObjectProperties = function (arr) {
+            var newArr = [];
+            arr.map(function (data) {
+                newArr.push(_this.removeObjectProperties(data));
+            });
+            return newArr;
+        };
     }
 
     (0, _createClass3.default)(Tool, [{
@@ -571,6 +579,44 @@ var Tool = function () {
         key: 'isEmpty',
         value: function isEmpty(value) {
             return _object2.default.isEmpty(value);
+        }
+    }, {
+        key: 'removeObjectProperties',
+        value: function removeObjectProperties(data) {
+            var newData = _lodash2.default.cloneDeep(data);
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = (0, _getIterator3.default)((0, _entries2.default)(newData)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var _ref3 = _step2.value;
+
+                    var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
+
+                    var key = _ref4[0];
+                    var value = _ref4[1];
+
+                    if (value === null || _lodash2.default.isObject(value)) {
+                        delete newData[key];
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            return newData;
         }
     }]);
     return Tool;

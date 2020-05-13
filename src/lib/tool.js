@@ -605,4 +605,31 @@ export default class Tool {
         return list;
     };
 
+    /**
+     * 删除数组中所有对象属性
+     * @param arr
+     * @returns {Array}
+     */
+    removeArrObjectProperties = (arr) => {
+        let newArr = [];
+        arr.map(data => {
+            newArr.push(this.removeObjectProperties(data));
+        });
+        return newArr;
+    };
+
+    /**
+     * 删除所有对象属性
+     * @param data
+     */
+    removeObjectProperties(data) {
+        let newData = _.cloneDeep(data);
+        for(let [key, value] of Object.entries(newData)) {
+            if(value === null || _.isObject(value)) {
+                delete newData[key];
+            }
+        }
+        return newData;
+    }
+
 }
