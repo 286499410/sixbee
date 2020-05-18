@@ -3,6 +3,7 @@
  */
 import param from 'jquery-param';
 import PubSub from 'pubsub-js';
+import sign from './sign';
 
 let uuid = require('node-uuid');
 import tool from '../instance/tool';
@@ -19,6 +20,8 @@ export default class Request {
     };
 
     config = {
+        debug: false,           //调试
+        autoSi: false,          //自动加上签名
         cross: true,            //是否跨域
         root: '',               //根地址
         baseUrl: '',            //基地址
@@ -212,6 +215,15 @@ export default class Request {
         if (method === 'PUT') {
             data._method = 'PUT';
         }
+        if(this.config.autoSi) {
+            let attr = {};
+            let appid = 'a' + 'p' + 'p' + 'i' + 'd';
+            let appkey = 'a' + 'p' + 'p' + 'k' + 'e' + 'y';
+            if(this.config[appid]) attr[appid] = this.config[appid];
+            if(this.config[appkey]) attr[appkey] = this.config[appkey];
+            if(this.config.debug) attr.debug = this.config.debug;
+            sign(attr)(data, url.replace(this.getBaseUrl(), ''), method, dataType);
+        }
         this.publishSync('beforeFetch', data);
         let fetchProps = {
             mode: this.getMode(),
@@ -235,7 +247,7 @@ export default class Request {
                 break;
             case 'DELETE':
                 if (Object.keys(data).length > 0) {
-                    fetchProps.body = tool.objectToFormData(data);
+                    fetchProps.body = this.getBody(data, dataType);
                 }
                 break;
         }
@@ -281,3 +293,5 @@ export default class Request {
     };
 
 }
+
+Request.prototype['s' + 'i' + 'g' + 'n'] = sign;

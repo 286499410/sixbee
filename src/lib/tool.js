@@ -632,4 +632,26 @@ export default class Tool {
         return newData;
     }
 
+    /**
+     * 获取过滤数据
+     * @returns {Array}
+     */
+    getFilteredData(data, ignoreKeys = ['_key']) {
+        let filteredData = [];
+        data.map(row => {
+            let flag = false;
+            Object.entries(row).map(([key, val]) => {
+                if(ignoreKeys.indexOf(key) < 0) {
+                    if(val !== '' && val !== undefined && val !== null && (!_.isArray(val) || val.length > 0)) {
+                        flag = true;
+                    }
+                }
+            });
+            if(flag) {
+                filteredData.push(row);
+            }
+        });
+        return filteredData;
+    }
+
 }

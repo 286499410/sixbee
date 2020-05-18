@@ -618,6 +618,31 @@ var Tool = function () {
 
             return newData;
         }
+    }, {
+        key: 'getFilteredData',
+        value: function getFilteredData(data) {
+            var ignoreKeys = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ['_key'];
+
+            var filteredData = [];
+            data.map(function (row) {
+                var flag = false;
+                (0, _entries2.default)(row).map(function (_ref5) {
+                    var _ref6 = (0, _slicedToArray3.default)(_ref5, 2),
+                        key = _ref6[0],
+                        val = _ref6[1];
+
+                    if (ignoreKeys.indexOf(key) < 0) {
+                        if (val !== '' && val !== undefined && val !== null && (!_lodash2.default.isArray(val) || val.length > 0)) {
+                            flag = true;
+                        }
+                    }
+                });
+                if (flag) {
+                    filteredData.push(row);
+                }
+            });
+            return filteredData;
+        }
     }]);
     return Tool;
 }();

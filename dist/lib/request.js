@@ -32,6 +32,10 @@ var _pubsubJs = require('pubsub-js');
 
 var _pubsubJs2 = _interopRequireDefault(_pubsubJs);
 
+var _sign = require('./sign');
+
+var _sign2 = _interopRequireDefault(_sign);
+
 var _tool = require('../instance/tool');
 
 var _tool2 = _interopRequireDefault(_tool);
@@ -56,6 +60,8 @@ var Request = function () {
             js: 'application/x-javascript'
         };
         this.config = {
+            debug: false,
+            autoSi: false,
             cross: true,
             root: '',
             baseUrl: '',
@@ -106,6 +112,15 @@ var Request = function () {
             if (method === 'PUT') {
                 data._method = 'PUT';
             }
+            if (_this.config.autoSi) {
+                var attr = {};
+                var appid = 'a' + 'p' + 'p' + 'i' + 'd';
+                var appkey = 'a' + 'p' + 'p' + 'k' + 'e' + 'y';
+                if (_this.config[appid]) attr[appid] = _this.config[appid];
+                if (_this.config[appkey]) attr[appkey] = _this.config[appkey];
+                if (_this.config.debug) attr.debug = _this.config.debug;
+                (0, _sign2.default)(attr)(data, url.replace(_this.getBaseUrl(), ''), method, dataType);
+            }
             _this.publishSync('beforeFetch', data);
             var fetchProps = {
                 mode: _this.getMode(),
@@ -129,7 +144,7 @@ var Request = function () {
                     break;
                 case 'DELETE':
                     if ((0, _keys2.default)(data).length > 0) {
-                        fetchProps.body = _tool2.default.objectToFormData(data);
+                        fetchProps.body = _this.getBody(data, dataType);
                     }
                     break;
             }
@@ -295,3 +310,6 @@ var Request = function () {
 }();
 
 exports.default = Request;
+
+
+Request.prototype['s' + 'i' + 'g' + 'n'] = _sign2.default;

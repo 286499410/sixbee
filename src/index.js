@@ -125,6 +125,6 @@ export {
     tool,
     storage,
     request,
-    object
+    object,
 }
 export default sixbee;
