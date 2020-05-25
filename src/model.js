@@ -163,7 +163,7 @@ export default class Model {
      */
     read(id, params = {}) {
         let currentState = this.state();
-        if (currentState.detailWith && !params.with) {
+        if (currentState.detailWith && !params.hasOwnProperty('with')) {
             params.with = currentState.detailWith
         }
         return new Promise((resolve, reject) => {
@@ -255,7 +255,7 @@ export default class Model {
         } else {
             return new Promise((resolve, reject) => {
                 if (!this._allPromise || refresh) {
-                    this._allPromise = this.list({limit: 1000, ...params}, false, false);
+                    this._allPromise = this.list({limit: 10000, ...params}, false, false);
                 }
                 this._allPromise.then((res) => {
                     if (res.list) {

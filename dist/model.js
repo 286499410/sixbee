@@ -207,7 +207,7 @@ var Model = function () {
             var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             var currentState = this.state();
-            if (currentState.detailWith && !params.with) {
+            if (currentState.detailWith && !params.hasOwnProperty('with')) {
                 params.with = currentState.detailWith;
             }
             return new _promise2.default(function (resolve, reject) {
@@ -299,7 +299,7 @@ var Model = function () {
             } else {
                 return new _promise2.default(function (resolve, reject) {
                     if (!_this8._allPromise || refresh) {
-                        _this8._allPromise = _this8.list((0, _extends3.default)({ limit: 1000 }, params), false, false);
+                        _this8._allPromise = _this8.list((0, _extends3.default)({ limit: 10000 }, params), false, false);
                     }
                     _this8._allPromise.then(function (res) {
                         if (res.list) {
