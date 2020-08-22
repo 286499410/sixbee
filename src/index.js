@@ -6,6 +6,12 @@ import Router from './router';
 import _ from 'lodash';
 import connect from './connect';
 
+window.__requireContext__ = {
+    app: require.context('app', true, /\.js$/),
+    lib: require.context('lib', true, /\.js$/),
+    middleware: require.context('middleware', true, /\.js$/),
+};
+
 let sixbee = {
     cache: {
         libs: {},
@@ -13,16 +19,32 @@ let sixbee = {
         middleware: {},
         forms: {}
     },
-    lib: (name, data = null) => {
+    getRequireContext: (name) => {
+        return typeof name !== 'string' ? name : window.__requireContext__[name];
+    },
+    getPath: (name, dirName = '') => {
+        let names = name.split('.');
+        if (dirName !== '') names.splice(names.length - 1, 0, dirName);
+        return names.join('/');
+    },
+    getModule: (name, requireContext, dirName = '') => {
+        let path = sixbee.getPath(name, dirName);
+        try {
+            return sixbee.getRequireContext(requireContext)('./' + path + '.js');
+        } catch (e) {
+            return undefined;
+        }
+    },
+    getLib: (name, data = null, requireContext = 'lib') => {
         if (typeof name !== 'string') {
             return name;
         }
         if (!sixbee.cache.libs[name]) {
             let Class;
-            let path = name.replace(/\./g, '/');
             try {
                 //自定义优先
-                Class = require(`lib/${path}`).default;
+                let module = sixbee.getModule(name, requireContext);
+                Class = module.default;
                 if (!Class) {
                     throw 'lib not found';
                 }
@@ -35,72 +57,61 @@ let sixbee = {
         }
         return sixbee.cache.libs[name];
     },
-    form: (name, cache) => {
+    getModel: (name, cache = true, requireContext = 'app') => {
         if (typeof name !== 'string') {
             return name;
         }
-        let names = name.split('.'), file;
-        if (names.length == 2) {
-            file = `${names[0]}/form/${names[1]}`;
-        } else {
-            file = `form/${names[0]}`;
+        if (cache && sixbee.cache.models[name]) {
+            return sixbee.cache.models[name];
         }
-        if (cache === false) {
-            let Class = require(`app/${file}`).default;
-            return new Class(name);
-        }
-        if (!sixbee.cache.forms[name]) {
-            try {
-                let Class = require(`app/${file}`).default;
-                if (!Class) {
-                    throw 'form not found';
-                }
-                sixbee.cache.forms[name] = new Class(name);
-            } catch (e) {
-                console.log('error', e);
+        let module = sixbee.getModule(name, requireContext, 'model');
+        let instance;
+        try {
+            let Class = module.default;
+            if (!Class) {
+                throw 'model not found';
             }
+            instance = new Class(name);
+        } catch (e) {
+            console.log('error', e);
+            instance = new Model(name);
         }
-        return sixbee.cache.forms[name]
+        if (cache) {
+            sixbee.cache.models[name] = instance;
+        }
+        return instance;
     },
-    model: (name, cache) => {
+    getForm: (name, cache = true, requireContext = 'app') => {
         if (typeof name !== 'string') {
             return name;
         }
-        let names = name.split('.'), file;
-        if (names.length == 2) {
-            file = `${names[0]}/model/${names[1]}`;
-        } else {
-            file = `model/${names[0]}`;
+        if (cache && sixbee.cache.forms[name]) {
+            return sixbee.cache.forms[name];
         }
-        if (cache === false) {
-            let Class = require(`app/${file}`).default;
-            return new Class(name);
-        }
-        if (!sixbee.cache.models[name]) {
-            try {
-                let Class = require(`app/${file}`).default;
-                if (!Class) {
-                    throw 'model not found';
-                }
-                sixbee.cache.models[name] = new Class(name);
-            } catch (e) {
-                console.log('error', e);
-                sixbee.cache.models[name] = new Model(name);
+        let module = sixbee.getModule(name, requireContext, 'form');
+        let instance;
+        try {
+            let Class = module.default;
+            if (!Class) {
+                throw 'form not found';
             }
+            instance = new Class(name);
+        } catch (e) {
+            console.log('error', e);
         }
-        return sixbee.cache.models[name];
+        if (cache) {
+            sixbee.cache.forms[name] = instance;
+        }
+        return instance;
     },
-    config: (name) => {
-        let config = require('app/common/config').default || {};
-        return name ? _.get(config, name) : config;
-    },
-    middleware: (name, data = null) => {
+    getMiddleware: (name, data = null, requireContext = 'middleware') => {
         if (typeof name !== 'string') {
             return name;
         }
+        let module = sixbee.getModule(name, 'middleware');
         if (!sixbee.cache.middleware[name]) {
             try {
-                sixbee.cache.middleware[name] = require(`middleware/${name}`).default;
+                sixbee.cache.middleware[name] = module.default;
                 if (!sixbee.cache.middleware[name]) {
                     throw 'middleware not find';
                 }
@@ -111,6 +122,24 @@ let sixbee = {
         }
         return sixbee.cache.middleware[name];
     },
+    lib: (name, data = null, requireContext = 'lib') => {
+        return sixbee.getLib(name, data, requireContext);
+    },
+    form: (name, cache, requireContext = 'app') => {
+        return sixbee.getForm(name, cache, requireContext);
+    },
+    model: (name, cache = true, requireContext = 'app') => {
+        return sixbee.getModel(name, cache, requireContext);
+    },
+    config: (name, requireContext = 'app') => {
+        let module = sixbee.getModule('common.config', requireContext);
+        let config = module.default || {};
+        return name ? _.get(config, name) : config;
+    },
+    middleware: (name, data = null, requireContext = 'middleware') => {
+        return sixbee.getMiddleware(name, data, requireContext);
+    },
+
 };
 const tool = sixbee.lib('tool');
 const storage = sixbee.lib('storage');

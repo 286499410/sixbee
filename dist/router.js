@@ -4,13 +4,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
-
-var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-
 var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
+
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
 
 var _extends2 = require('babel-runtime/helpers/extends');
 
@@ -108,6 +108,35 @@ var Gateway = function (_Component2) {
             return route.layout !== false ? route.layout || this.props.route.layout : false;
         }
     }, {
+        key: 'setDocumentTitle',
+        value: function setDocumentTitle(props) {
+            if (props.route.titles) {
+                if (props.route.titles[location.pathname]) {
+                    document.title = props.route.titles[location.pathname];
+                } else if (props.route.titles['_default']) {
+                    document.title = props.route.titles['_default'];
+                }
+            }
+        }
+    }, {
+        key: 'setQuery',
+        value: function setQuery(props) {
+            var match = {};
+            var query = {};
+            props.location.search.substr(1).split('&').map(function (row) {
+                var _row$split = row.split('='),
+                    _row$split2 = (0, _slicedToArray3.default)(_row$split, 2),
+                    key = _row$split2[0],
+                    value = _row$split2[1];
+
+                if (value !== undefined) {
+                    query[key] = value;
+                }
+            });
+            match.query = query;
+            props.match = (0, _extends3.default)({}, props.match, match);
+        }
+    }, {
         key: 'render',
         value: function render() {
             var _this4 = this;
@@ -147,6 +176,10 @@ var Gateway = function (_Component2) {
                 }
             }
 
+            this.setDocumentTitle(props);
+
+            this.setQuery(props);
+
             if (props.switch) {
                 var Layout = this.getLayout(props.switch);
                 if (Layout) {
@@ -162,16 +195,6 @@ var Gateway = function (_Component2) {
                     var pathname = props.location.pathname;
                     var paths = void 0;
                     var match = {};
-                    var query = {};
-
-                    if (props.route.titles) {
-                        if (props.route.titles[location.pathname]) {
-                            document.title = props.route.titles[location.pathname];
-                        } else if (props.route.titles['_default']) {
-                            document.title = props.route.titles['_default'];
-                        }
-                    }
-
                     pathname = pathname.replace(/\/*/, '');
                     pathname = pathname.replace(/\/*$/, '');
                     paths = pathname.split('/');
@@ -182,17 +205,6 @@ var Gateway = function (_Component2) {
                     };
                     paths.splice(0, 1);
                     match.params.view = paths.join('/');
-                    props.location.search.substr(1).split('&').map(function (row) {
-                        var _row$split = row.split('='),
-                            _row$split2 = (0, _slicedToArray3.default)(_row$split, 2),
-                            key = _row$split2[0],
-                            value = _row$split2[1];
-
-                        if (value !== undefined) {
-                            query[key] = value;
-                        }
-                    });
-                    match.query = query;
                     props.match = (0, _extends3.default)({}, props.match, match);
                     try {
                         var context = void 0;

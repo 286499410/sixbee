@@ -52,6 +52,10 @@ var _curd = require('./lib/curd');
 
 var _curd2 = _interopRequireDefault(_curd);
 
+var _storage = require('./instance/storage');
+
+var _storage2 = _interopRequireDefault(_storage);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Model = function () {
@@ -426,7 +430,7 @@ var Model = function () {
                                 _lodash2.default.set(cond, filterKey + '.' + filterCondKey, value);
                             }
                         } else {
-                            if (filterCondKey) {
+                            if (filterCondKey && !_lodash2.default.isPlainObject(value)) {
                                 _lodash2.default.set(cond, filterKey + '.' + filterCondKey, value);
                             } else {
                                 _lodash2.default.set(cond, filterKey, value);
@@ -455,6 +459,51 @@ var Model = function () {
         key: 'getData',
         value: function getData(id) {
             return this._state.data[id];
+        }
+    }, {
+        key: 'setColumnWidths',
+        value: function setColumnWidths(columnWidths) {
+            _storage2.default.local(this.key + ".columnWidths", columnWidths);
+        }
+    }, {
+        key: 'getColumnWidths',
+        value: function getColumnWidths(initWidths) {
+            return initWidths;
+            var cacheWidths = _storage2.default.local(this.key + ".columnWidths") || {};
+            if (initWidths === undefined) {
+                return cacheWidths;
+            }
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = (0, _getIterator3.default)((0, _entries2.default)(initWidths)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var _ref3 = _step2.value;
+
+                    var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
+
+                    var key = _ref4[0];
+                    var value = _ref4[1];
+
+                    initWidths[key] = cacheWidths[key] || value;
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            return initWidths;
         }
     }]);
     return Model;

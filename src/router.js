@@ -49,6 +49,29 @@ class Gateway extends Component {
         return route.layout !== false ? route.layout || this.props.route.layout : false;
     }
 
+    setDocumentTitle(props) {
+        if (props.route.titles) {
+            if (props.route.titles[location.pathname]) {
+                document.title = props.route.titles[location.pathname];
+            } else if (props.route.titles['_default']) {
+                document.title = props.route.titles['_default'];
+            }
+        }
+    }
+
+    setQuery(props) {
+        let match = {};
+        let query = {};
+        props.location.search.substr(1).split('&').map((row) => {
+            let [key, value] = row.split('=');
+            if (value !== undefined) {
+                query[key] = value;
+            }
+        });
+        match.query = query;
+        props.match = {...props.match, ...match};
+    }
+
     render() {
         let props = {...this.props};
         let App = this.context.App;
@@ -63,6 +86,10 @@ class Gateway extends Component {
                 }
             }
         }
+
+        this.setDocumentTitle(props);
+
+        this.setQuery(props);
 
         if (props.switch) {
             //自定义的路由匹配
@@ -79,16 +106,6 @@ class Gateway extends Component {
                 let pathname = props.location.pathname;
                 let paths;
                 let match = {};
-                let query = {};
-
-                if (props.route.titles) {
-                    if (props.route.titles[location.pathname]) {
-                        document.title = props.route.titles[location.pathname];
-                    } else if (props.route.titles['_default']) {
-                        document.title = props.route.titles['_default'];
-                    }
-                }
-
                 pathname = pathname.replace(/\/*/, '');
                 pathname = pathname.replace(/\/*$/, '');
                 paths = pathname.split('/');
@@ -99,13 +116,6 @@ class Gateway extends Component {
                 };
                 paths.splice(0, 1);
                 match.params.view = paths.join('/');
-                props.location.search.substr(1).split('&').map((row) => {
-                    let [key, value] = row.split('=');
-                    if (value !== undefined) {
-                        query[key] = value;
-                    }
-                });
-                match.query = query;
                 props.match = {...props.match, ...match};
                 try {
                     let context;

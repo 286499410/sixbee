@@ -98,7 +98,7 @@ export default class xlsx {
         //处理列单元格数据
         let handleColumnCell = (columns, startCol, level = 1) => {
             columns.map(column => {
-                if(column.exportIgnore) {
+                if (column.exportIgnore) {
                     return;
                 }
                 cell[this.getCellSymbol(row + level - 1, startCol)] = {
@@ -205,14 +205,16 @@ export default class xlsx {
             row += line;
             sheet.data.map((data, i) => {
                 let groupRow = 1;
+                let groupCols = 0;
                 dataKeys.map((dataKey, j) => {
-                    if(dataKey.groupKey) {
+                    if (dataKey.groupKey) {
+                        groupCols++;
                         let groupData = (_.get(data, dataKey.groupKey) || []);
-                        groupRow = groupData.length;
+                        groupRow = groupData.length || 1;
                     }
                 });
                 dataKeys.map((dataKey, j) => {
-                    if(dataKey.groupKey) {
+                    if (dataKey.groupKey) {
                         let groupData = (_.get(data, dataKey.groupKey) || []);
                         groupData.map((detail, k) => {
                             let cellSymbol = this.getCellSymbol(row + i + k, j);
@@ -226,6 +228,18 @@ export default class xlsx {
                                 }, (dataKey.type === 'money' ? this.getMoneyStyle(dataKey) : {})),
                             };
                         });
+                        if (groupData.length == 0) {
+                            let cellSymbol = this.getCellSymbol(row + i, j);
+                            cell[cellSymbol] = {
+                                v: '',
+                                s: _.merge({}, this.style, this.tableStyle, {
+                                    alignment: {
+                                        horizontal: dataKey.textAlign || "left",
+                                        vertical: "center"
+                                    }
+                                }, (dataKey.type === 'money' ? this.getMoneyStyle(dataKey) : {})),
+                            };
+                        }
                     } else {
                         let cellSymbol = this.getCellSymbol(row + i, j);
                         cell[cellSymbol] = {
@@ -241,13 +255,13 @@ export default class xlsx {
                         if (extend) {
                             cell[cellSymbol] = _.merge({}, cell[cellSymbol], extend);
                         }
-                        if(groupRow > 1) {
+                        if (groupRow > 1) {
                             //合并单元格
                             merges.push({
                                 s: {c: j, r: row + i},
                                 e: {c: j, r: row + i + groupRow - 1}
                             });
-                            for(let s = 1; s < groupRow; s++) {
+                            for (let s = 1; s < groupRow; s++) {
                                 let cellSymbol = this.getCellSymbol(row + i + s, j);
                                 cell[cellSymbol] = {
                                     s: _.merge({}, this.style, this.tableStyle, {
@@ -267,15 +281,27 @@ export default class xlsx {
 
             if (sheet.footerData) {
                 sheet.footerData[0].map((data, i) => {
-                    cell[this.getCellSymbol(row, i)] = {
-                        v: data.content || '',
-                        s: _.merge({}, this.style, this.tableStyle, {
-                            alignment: {
-                                horizontal: data.textAlign || "left",
-                                vertical: "center"
-                            }
-                        }, (data.type === 'money' ? this.moneyStyle : {}))
-                    };
+                    if (_.isString(data) || data === null) {
+                        cell[this.getCellSymbol(row, i)] = {
+                            v: data === null ? '' : data,
+                            s: _.merge({}, this.style, this.tableStyle, {
+                                alignment: {
+                                    horizontal: "left",
+                                    vertical: "center"
+                                }
+                            }, {})
+                        };
+                    } else {
+                        cell[this.getCellSymbol(row, i)] = {
+                            v: data.content || '',
+                            s: _.merge({}, this.style, this.tableStyle, {
+                                alignment: {
+                                    horizontal: data.textAlign || "left",
+                                    vertical: "center"
+                                }
+                            }, (data.type === 'money' ? this.moneyStyle : {}))
+                        };
+                    }
                 });
             }
 

@@ -87,7 +87,11 @@ var objectToKeyValue = function objectToKeyValue(obj, namespace, method) {
         for (var property in obj) {
             if (obj.hasOwnProperty(property)) {
                 formKey = namespace ? namespace + '[' + property + ']' : property;
-                if (obj[property] === undefined) {} else if (obj[property] === null || _lodash2.default.isNaN(obj[property])) {
+                if (obj[property] === undefined) {
+                    if ((method || '').toUpperCase() === 'GET') {
+                        keyValue[formKey] = '';
+                    }
+                } else if (obj[property] === null || _lodash2.default.isNaN(obj[property])) {
                     keyValue[formKey] = '';
                 } else if ((0, _typeof3.default)(obj[property]) === 'object') {
                     (0, _assign2.default)(keyValue, objectToKeyValue(obj[property], formKey, method));

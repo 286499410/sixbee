@@ -6,6 +6,7 @@ import _ from 'lodash';
 import PubSub from 'pubsub-js';
 import tool from './instance/tool';
 import Curd from './lib/curd';
+import storage from './instance/storage';
 
 export default class Model {
 
@@ -374,7 +375,7 @@ export default class Model {
                         _.set(cond, filterKey + '.' + filterCondKey, value);
                     }
                 } else {
-                    if (filterCondKey) {
+                    if (filterCondKey && !_.isPlainObject(value)) {
                         _.set(cond, filterKey + '.' + filterCondKey, value);
                     } else {
                         _.set(cond, filterKey, value);
@@ -392,5 +393,28 @@ export default class Model {
      */
     getData(id) {
         return this._state.data[id];
+    }
+
+    /**
+     * 设置列表宽度
+     * @param columnWidths
+     */
+    setColumnWidths(columnWidths) {
+        storage.local(this.key + ".columnWidths", columnWidths);
+    }
+
+    /**
+     * 获取列表宽度
+     */
+    getColumnWidths(initWidths) {
+        return initWidths;
+        let cacheWidths = storage.local(this.key + ".columnWidths") || {};
+        if(initWidths === undefined) {
+            return cacheWidths;
+        }
+        for(let [key, value] of Object.entries(initWidths)) {
+            initWidths[key] = cacheWidths[key] || value;
+        }
+        return initWidths;
     }
 }

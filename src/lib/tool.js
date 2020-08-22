@@ -572,13 +572,13 @@ export default class Tool {
 
     /**
      * 合计
-     * @param data
-     * @param key
-     * @param float
+     * @param data  数据
+     * @param key   合计字段
+     * @param float 保留小数位
      * @param type = money | number
      * @returns {string}
      */
-    count = (data, key, float, type = 'money') => {
+    count = (data, key, float = 2, type = 'money') => {
         let count = 0;
         data.map(row => {
             count += parseFloat(_.get(row, key) || 0);

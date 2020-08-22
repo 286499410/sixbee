@@ -12,9 +12,8 @@ export default class Provider extends Component {
     }
 
     getChildContext() {
-        let requireContext = require.context('app/', true, /\.js$/);
         let App = this.props.App;
-        App.requireContext = requireContext;
+        App.requireContext = window.__requireContext__.app;
         return {
             App: App,
         }

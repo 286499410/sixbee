@@ -379,7 +379,8 @@ var Tool = function () {
             return float ? _this.round(value, float) : value;
         };
 
-        this.count = function (data, key, float) {
+        this.count = function (data, key) {
+            var float = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
             var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'money';
 
             var count = 0;

@@ -45,9 +45,8 @@ var Provider = function (_Component) {
     (0, _createClass3.default)(Provider, [{
         key: 'getChildContext',
         value: function getChildContext() {
-            var requireContext = require.context('app/', true, /\.js$/);
             var App = this.props.App;
-            App.requireContext = requireContext;
+            App.requireContext = window.__requireContext__.app;
             return {
                 App: App
             };

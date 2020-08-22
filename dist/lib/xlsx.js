@@ -248,10 +248,12 @@ var xlsx = function () {
                 row += line;
                 sheet.data.map(function (data, i) {
                     var groupRow = 1;
+                    var groupCols = 0;
                     dataKeys.map(function (dataKey, j) {
                         if (dataKey.groupKey) {
+                            groupCols++;
                             var groupData = _lodash2.default.get(data, dataKey.groupKey) || [];
-                            groupRow = groupData.length;
+                            groupRow = groupData.length || 1;
                         }
                     });
                     dataKeys.map(function (dataKey, j) {
@@ -269,9 +271,21 @@ var xlsx = function () {
                                     }, dataKey.type === 'money' ? _this2.getMoneyStyle(dataKey) : {})
                                 };
                             });
+                            if (groupData.length == 0) {
+                                var cellSymbol = _this2.getCellSymbol(row + i, j);
+                                cell[cellSymbol] = {
+                                    v: '',
+                                    s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                        alignment: {
+                                            horizontal: dataKey.textAlign || "left",
+                                            vertical: "center"
+                                        }
+                                    }, dataKey.type === 'money' ? _this2.getMoneyStyle(dataKey) : {})
+                                };
+                            }
                         } else {
-                            var cellSymbol = _this2.getCellSymbol(row + i, j);
-                            cell[cellSymbol] = {
+                            var _cellSymbol = _this2.getCellSymbol(row + i, j);
+                            cell[_cellSymbol] = {
                                 v: _this2.getValue(dataKey, data),
                                 s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
                                     alignment: {
@@ -282,7 +296,7 @@ var xlsx = function () {
                             };
                             var extend = _lodash2.default.get(data, 'extend.' + dataKey.key);
                             if (extend) {
-                                cell[cellSymbol] = _lodash2.default.merge({}, cell[cellSymbol], extend);
+                                cell[_cellSymbol] = _lodash2.default.merge({}, cell[_cellSymbol], extend);
                             }
                             if (groupRow > 1) {
                                 merges.push({
@@ -290,8 +304,8 @@ var xlsx = function () {
                                     e: { c: j, r: row + i + groupRow - 1 }
                                 });
                                 for (var s = 1; s < groupRow; s++) {
-                                    var _cellSymbol = _this2.getCellSymbol(row + i + s, j);
-                                    cell[_cellSymbol] = {
+                                    var _cellSymbol2 = _this2.getCellSymbol(row + i + s, j);
+                                    cell[_cellSymbol2] = {
                                         s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
                                             alignment: {
                                                 horizontal: dataKey.textAlign || "left",
@@ -309,15 +323,27 @@ var xlsx = function () {
 
                 if (sheet.footerData) {
                     sheet.footerData[0].map(function (data, i) {
-                        cell[_this2.getCellSymbol(row, i)] = {
-                            v: data.content || '',
-                            s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
-                                alignment: {
-                                    horizontal: data.textAlign || "left",
-                                    vertical: "center"
-                                }
-                            }, data.type === 'money' ? _this2.moneyStyle : {})
-                        };
+                        if (_lodash2.default.isString(data) || data === null) {
+                            cell[_this2.getCellSymbol(row, i)] = {
+                                v: data === null ? '' : data,
+                                s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                    alignment: {
+                                        horizontal: "left",
+                                        vertical: "center"
+                                    }
+                                }, {})
+                            };
+                        } else {
+                            cell[_this2.getCellSymbol(row, i)] = {
+                                v: data.content || '',
+                                s: _lodash2.default.merge({}, _this2.style, _this2.tableStyle, {
+                                    alignment: {
+                                        horizontal: data.textAlign || "left",
+                                        vertical: "center"
+                                    }
+                                }, data.type === 'money' ? _this2.moneyStyle : {})
+                            };
+                        }
                     });
                 }
 

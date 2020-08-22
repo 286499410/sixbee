@@ -39,6 +39,9 @@ let objectToKeyValue = (obj, namespace, method, dataType = 'json') => {
                 formKey = namespace ? namespace + '[' + property + ']' : property;
                 if(obj[property] === undefined) {
                     //undefined不处理
+                    if((method || '').toUpperCase() === 'GET') {
+                        keyValue[formKey] = '';
+                    }
                 } else if (obj[property] === null || _.isNaN(obj[property])) {
                     keyValue[formKey] = '';
                 } else if (typeof obj[property] === 'object') {
