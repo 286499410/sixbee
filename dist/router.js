@@ -232,7 +232,7 @@ var Gateway = function (_Component2) {
                             return _react2.default.createElement(_Component3, props);
                         }
                     } catch (e) {
-                        console.log('route not found:' + props.location.pathname);
+                        console.log('route not found:' + props.location.pathname, e);
                     }
                 }
                 return _react2.default.createElement(

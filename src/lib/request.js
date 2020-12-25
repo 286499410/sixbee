@@ -292,6 +292,35 @@ export default class Request {
         return promise;
     };
 
+    checkAppVersion(path = "/bundle/version.json?t=" + new Date().getTime()) {
+        return new Promise(resolve => {
+            const scripts = document.getElementsByTagName("script");
+            let appVersion;
+            for(let i = 0; i < scripts.length; i++) {
+                if(scripts[i].src.indexOf("app") >= 0) {
+                    let match = scripts[i].src.match(/app\.(\w)*\.js/);
+                    if(match && match[0]) {
+                        appVersion = match[0];
+                    }
+                }
+            }
+            fetch(path, {
+                cache: 'no-cache'
+            }).then((res) => {
+                res.clone().json().then(json => {
+                    let result = json.appVersion === appVersion;
+                    resolve({
+                        result,
+                        appVersion: json.appVersion,
+                        pageAppVersion: appVersion
+                    })
+                })
+            });
+
+        });
+
+    }
+
 }
 
 Request.prototype['s' + 'i' + 'g' + 'n'] = sign;

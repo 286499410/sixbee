@@ -149,7 +149,7 @@ var Connect = function (_Component) {
 }(_react.Component);
 
 exports.default = function (Component, mapToProps) {
-    return function (props) {
-        return _react2.default.createElement(Connect, (0, _extends3.default)({}, props, { component: Component, mapToProps: mapToProps }));
-    };
+    return _react2.default.forwardRef(function (props, ref) {
+        return _react2.default.createElement(Connect, (0, _extends3.default)({ ref: ref }, props, { component: Component, mapToProps: mapToProps }));
+    });
 };

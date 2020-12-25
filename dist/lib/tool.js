@@ -644,6 +644,22 @@ var Tool = function () {
             });
             return filteredData;
         }
+    }, {
+        key: 'eachTreeNode',
+        value: function eachTreeNode(tree, callback) {
+            var _this4 = this;
+
+            var parent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+            tree.map(function (node) {
+                if (_lodash2.default.isFunction(callback)) {
+                    callback(node, parent);
+                    if (node.children) {
+                        _this4.eachTreeNode(node.children, callback, node);
+                    }
+                }
+            });
+        }
     }]);
     return Tool;
 }();

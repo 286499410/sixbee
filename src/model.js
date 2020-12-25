@@ -350,6 +350,25 @@ export default class Model {
         return fields;
     }
 
+    getListShowFields(columns, listFieldConfig) {
+        let fields = this.getFields(columns);
+        if(!listFieldConfig) {
+            return fields;
+        } else {
+            const listFields = _.get(listFieldConfig, "fields") || [];
+            let showFields = {};
+            listFields.forEach(field => {
+                if(field.is_show) showFields[field.key] = true;
+            });
+            fields = fields.filter(field => field.key === "action" || showFields[field.listFieldKey || field.dataKey || field.key]);
+            fields.forEach(field => {
+                field.sort = _.get(showFields[field.listFieldKey || field.dataKey || field.key], "sort", 0);
+            });
+            fields.sort((a, b) => a.sort - b.sort);
+            return fields.length == 1 && fields[0].key === "action" ? [] : fields;
+        }
+    }
+
     /**
      * 过滤数据转查询条件
      * @param filterData
@@ -417,4 +436,32 @@ export default class Model {
         }
         return initWidths;
     }
+
+    /**
+     * 转树形结构
+     * @returns {Promise<void>}
+     */
+    async getTree() {
+        const list = await this.getAll();
+        let tree = tool.toTree(list);
+        return tree;
+    }
+
+    /**
+     * 获取列字段定义
+     * @returns {Promise<*>}
+     */
+    async loadListField() {
+        const uri = App.config().listFieldUri;
+        const listFieldParams = this.state().listFieldParams;
+        if(uri && listFieldParams) {
+            const res = await App.lib("request").get(uri, listFieldParams);
+            if(res.ok) {
+                let json = await res.json();
+                this.state({listField: json.list[0]});
+                return json.list[0];
+            }
+        }
+    }
+
 }

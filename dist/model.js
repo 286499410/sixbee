@@ -4,6 +4,14 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
 var _entries = require('babel-runtime/core-js/object/entries');
 
 var _entries2 = _interopRequireDefault(_entries);
@@ -390,6 +398,30 @@ var Model = function () {
             return fields;
         }
     }, {
+        key: 'getListShowFields',
+        value: function getListShowFields(columns, listFieldConfig) {
+            var fields = this.getFields(columns);
+            if (!listFieldConfig) {
+                return fields;
+            } else {
+                var listFields = _lodash2.default.get(listFieldConfig, "fields") || [];
+                var showFields = {};
+                listFields.forEach(function (field) {
+                    if (field.is_show) showFields[field.key] = true;
+                });
+                fields = fields.filter(function (field) {
+                    return field.key === "action" || showFields[field.listFieldKey || field.dataKey || field.key];
+                });
+                fields.forEach(function (field) {
+                    field.sort = _lodash2.default.get(showFields[field.listFieldKey || field.dataKey || field.key], "sort", 0);
+                });
+                fields.sort(function (a, b) {
+                    return a.sort - b.sort;
+                });
+                return fields.length == 1 && fields[0].key === "action" ? [] : fields;
+            }
+        }
+    }, {
         key: 'filterToCond',
         value: function filterToCond() {
             var filterData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._state.filter;
@@ -505,6 +537,88 @@ var Model = function () {
 
             return initWidths;
         }
+    }, {
+        key: 'getTree',
+        value: function () {
+            var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
+                var list, tree;
+                return _regenerator2.default.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return this.getAll();
+
+                            case 2:
+                                list = _context.sent;
+                                tree = _tool2.default.toTree(list);
+                                return _context.abrupt('return', tree);
+
+                            case 5:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function getTree() {
+                return _ref5.apply(this, arguments);
+            }
+
+            return getTree;
+        }()
+    }, {
+        key: 'loadListField',
+        value: function () {
+            var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+                var uri, listFieldParams, res, json;
+                return _regenerator2.default.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                uri = App.config().listFieldUri;
+                                listFieldParams = this.state().listFieldParams;
+
+                                if (!(uri && listFieldParams)) {
+                                    _context2.next = 12;
+                                    break;
+                                }
+
+                                _context2.next = 5;
+                                return App.lib("request").get(uri, listFieldParams);
+
+                            case 5:
+                                res = _context2.sent;
+
+                                if (!res.ok) {
+                                    _context2.next = 12;
+                                    break;
+                                }
+
+                                _context2.next = 9;
+                                return res.json();
+
+                            case 9:
+                                json = _context2.sent;
+
+                                this.state({ listField: json.list[0] });
+                                return _context2.abrupt('return', json.list[0]);
+
+                            case 12:
+                            case 'end':
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function loadListField() {
+                return _ref6.apply(this, arguments);
+            }
+
+            return loadListField;
+        }()
     }]);
     return Model;
 }();

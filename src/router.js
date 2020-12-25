@@ -139,7 +139,7 @@ class Gateway extends Component {
                         return <Component {...props}/>
                     }
                 } catch (e) {
-                    console.log('route not found:' + props.location.pathname);
+                    console.log('route not found:' + props.location.pathname, e);
                 }
             }
             return <Switch>

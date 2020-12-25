@@ -654,4 +654,20 @@ export default class Tool {
         return filteredData;
     }
 
+    /**
+     * 遍历树形节点
+     * @param tree
+     * @param callback
+     */
+    eachTreeNode(tree, callback, parent = null) {
+        tree.map((node) => {
+            if(_.isFunction(callback)) {
+                callback(node, parent);
+                if(node.children) {
+                    this.eachTreeNode(node.children, callback, node);
+                }
+            }
+        })
+    }
+
 }

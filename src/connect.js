@@ -94,6 +94,6 @@ class Connect extends Component {
     }
 }
 
-export default (Component, mapToProps) => (props) => {
-    return <Connect {...props} component={Component} mapToProps={mapToProps}/>
-};
+export default (Component, mapToProps) => React.forwardRef((props, ref) => {
+    return <Connect ref={ref} {...props} component={Component} mapToProps={mapToProps}/>
+});

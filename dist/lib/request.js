@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
+
 var _keys = require('babel-runtime/core-js/object/keys');
 
 var _keys2 = _interopRequireDefault(_keys);
@@ -304,6 +308,36 @@ var Request = function () {
             var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             _pubsubJs2.default.publish(this.key + '-' + eventKey, data);
+        }
+    }, {
+        key: 'checkAppVersion',
+        value: function checkAppVersion() {
+            var path = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "/bundle/version.json?t=" + new Date().getTime();
+
+            return new _promise2.default(function (resolve) {
+                var scripts = document.getElementsByTagName("script");
+                var appVersion = void 0;
+                for (var i = 0; i < scripts.length; i++) {
+                    if (scripts[i].src.indexOf("app") >= 0) {
+                        var match = scripts[i].src.match(/app\.(\w)*\.js/);
+                        if (match && match[0]) {
+                            appVersion = match[0];
+                        }
+                    }
+                }
+                fetch(path, {
+                    cache: 'no-cache'
+                }).then(function (res) {
+                    res.clone().json().then(function (json) {
+                        var result = json.appVersion === appVersion;
+                        resolve({
+                            result: result,
+                            appVersion: json.appVersion,
+                            pageAppVersion: appVersion
+                        });
+                    });
+                });
+            });
         }
     }]);
     return Request;
